@@ -4,20 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lagoon</title>
-    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/src/island.css" />
     <script type="module" src="/src/main.js"></script>
   </head>
 
   <body>
-    <main class="container">
-      <h1>Lagoon</h1>
-      <p>Каркас працює. Перевіримо зв'язок JS → Rust:</p>
-
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Твоє ім'я…" />
-        <button type="submit">Привітатися</button>
-      </form>
-      <p id="greet-msg"></p>
-    </main>
+    <div class="island" id="island">
+      <time class="island__clock" id="clock">--:--</time>
+    </div>
   </body>
 </html>

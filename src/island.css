@@ -1,0 +1,40 @@
+/* Прозорий фон: вікно Tauri прозоре, тож видно лише саму пігулку */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+.island {
+  --island-color: #000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 34px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--island-color);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  cursor: default;
+}
+
+.island__clock {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  /* Цифри однакової ширини, щоб текст не «тремтів» при зміні хвилин */
+  font-variant-numeric: tabular-nums;
+}
