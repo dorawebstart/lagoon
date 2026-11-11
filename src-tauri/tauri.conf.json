@@ -14,8 +14,18 @@
       {
         "label": "main",
         "title": "Lagoon",
-        "width": 800,
-        "height": 600
+        "width": 240,
+        "height": 56,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false
       }
     ],
     "security": {
