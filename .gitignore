@@ -1,0 +1,21 @@
+# Залежності та збірка фронтенду
+node_modules/
+dist/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Секрети та логи
+.env
+.env.*
+!.env.example
+*.log
+
+# Редактор (окрім рекомендованих розширень)
+.vscode/*
+!.vscode/extensions.json
+
+# Системне сміття
+.DS_Store
+Thumbs.db
