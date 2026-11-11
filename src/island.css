@@ -29,6 +29,13 @@ body {
   color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   cursor: default;
+  transition: background-color 150ms ease;
+}
+
+/* Тимчасова підказка для перевірки click-through: пігулка ловить мишу.
+   Крок 4 замінить це на справжнє розкриття. */
+.island:hover {
+  --island-color: #1c1c1e;
 }
 
 .island__clock {
