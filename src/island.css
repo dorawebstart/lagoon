@@ -288,34 +288,10 @@ body.edge-bottom .island__expanded {
   opacity: 0.6;
 }
 
-/* Великий еквалайзер у розкритому плеєрі: 7 смужок, вищий, на рівні з обкладинкою.
-   Якщо Rust шле рівень звуку (хвиля увімкнена), смужки рухаються від нього
-   (клас is-live, wave.js), інакше — власна анімація, як у пігулці */
 .eq--big {
-  gap: 3px;
-  width: auto;
-  height: 32px;
-}
-
-.eq--big i {
-  width: 4px;
-}
-
-.eq--big i:nth-child(5) {
-  animation-delay: -450ms;
-}
-.eq--big i:nth-child(6) {
-  animation-delay: -750ms;
-}
-.eq--big i:nth-child(7) {
-  animation-delay: -200ms;
-}
-
-.eq--big.is-live i {
-  animation: none;
-  transition:
-    transform 70ms linear,
-    background-color 400ms ease;
+  align-self: flex-start;
+  height: 20px;
+  margin-top: 4px;
 }
 
 /* ───────── Розгорнутий стан: без музики ───────── */

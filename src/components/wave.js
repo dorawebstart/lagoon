@@ -27,14 +27,6 @@ export function setupWave(island) {
   });
   island.append(wave);
 
-  // Великий еквалайзер розкритого плеєра теж рухається від рівня звуку
-  const bigEq = island.querySelector(".eq--big");
-  const bigBars = bigEq
-    ? [...bigEq.children].map((element, index) => ({ element, phase: index * 1.3, speed: 5 + ((index * 3) % 4) }))
-    : [];
-  /** Таймер «рівень перестав приходити» — тоді повертаємо власну анімацію еквалайзера. */
-  let liveTimer = 0;
-
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let enabled = true;
 
@@ -56,29 +48,8 @@ export function setupWave(island) {
     invoke("audio_wave", { enabled: active }).catch((error) => console.warn("audio_wave:", error));
   }
 
-  /** Великий еквалайзер: лише коли острів розкритий (інакше його не видно). */
-  function drawBigEq(level) {
-    if (!bigEq || !island.classList.contains("is-expanded")) return;
-    bigEq.classList.add("is-live");
-    const time = performance.now() / 1000;
-    for (const bar of bigBars) {
-      const wobble = 0.5 + 0.5 * Math.sin(time * bar.speed + bar.phase);
-      const height = Math.min(1, Math.max(0.15, level * GAIN * wobble));
-      bar.element.style.transform = `scaleY(${height.toFixed(2)})`;
-    }
-    // Рівень довго не приходить (пауза, хвилю вимкнули) — власна анімація
-    clearTimeout(liveTimer);
-    liveTimer = setTimeout(() => {
-      bigEq.classList.remove("is-live");
-      for (const bar of bigBars) bar.element.style.transform = "";
-    }, 600);
-  }
-
   listen("audio:level", (event) => {
-    if (!enabled || reducedMotion.matches) return;
-    const level = Number(event.payload) || 0;
-    draw(level);
-    drawBigEq(level);
+    if (enabled && !reducedMotion.matches) draw(Number(event.payload) || 0);
   });
   // Користувач увімкнув / вимкнув анімації в Windows — підлаштовуємось одразу
   reducedMotion.addEventListener("change", sync);
