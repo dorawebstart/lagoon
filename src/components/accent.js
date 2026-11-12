@@ -1,6 +1,9 @@
-// Колір з обкладинки: беремо головний яскравий колір обкладинки пісні і
-// фарбуємо ним еквалайзер, прогрес-бар, повзунок гучності й поточний рядок
-// тексту пісні (CSS-змінна --cover на <html>, див. island.css).
+// Колір акценту: еквалайзер, прогрес-бар, повзунок гучності й поточний рядок
+// тексту пісні (CSS-змінна --user-accent на <html>, див. island.css).
+// Режими (налаштування accentMode):
+//   "cover"  — головний яскравий колір обкладинки пісні;
+//   "custom" — свій колір з палітри (accentColor);
+//   "theme"  — стандартні кольори теми (змінну прибираємо).
 //
 // Як шукаємо колір: зменшуємо обкладинку до 32×32 на canvas, розкладаємо
 // пікселі по «кошиках» схожих кольорів і обираємо кошик, де багато пікселів
@@ -11,8 +14,9 @@ import { listen } from "@tauri-apps/api/event";
 /** Розмір зменшеної копії: 32×32 = 1024 пікселі — досить, щоб угадати колір. */
 const SAMPLE_SIZE = 32;
 
-export function setupCoverAccent() {
-  let enabled = true;
+export function setupAccent() {
+  let mode = "cover";
+  let customColor = null;
   let thumbnail = null;
   /** Колір останньої обкладинки (кеш: та сама картинка — той самий колір). */
   let cached = { thumbnail: null, color: null };
@@ -21,12 +25,13 @@ export function setupCoverAccent() {
 
   function apply(color) {
     const root = document.documentElement.style;
-    if (enabled && color) root.setProperty("--cover", color);
-    else root.removeProperty("--cover");
+    if (color) root.setProperty("--user-accent", color);
+    else root.removeProperty("--user-accent");
   }
 
   async function update() {
-    if (!enabled || !thumbnail) return apply(null);
+    if (mode === "custom") return apply(customColor);
+    if (mode !== "cover" || !thumbnail) return apply(null);
     if (cached.thumbnail === thumbnail) return apply(cached.color);
 
     const id = ++request;
@@ -45,9 +50,10 @@ export function setupCoverAccent() {
   invoke("media_current").then(onMedia);
 
   return {
-    /** Перемикач «Колір з обкладинки» з налаштувань. */
-    setEnabled(value) {
-      enabled = value !== false;
+    /** Режим з налаштувань: "cover" | "custom" | "theme" і свій колір. */
+    setMode(nextMode, color) {
+      mode = nextMode;
+      customColor = color;
       update();
     },
   };

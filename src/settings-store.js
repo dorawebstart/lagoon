@@ -11,8 +11,11 @@ export const DEFAULTS = {
   /** Тема острова: "classic" | "graphite" | "glass" | "custom" (свій колір — islandColor). */
   theme: "classic",
   islandColor: "#000000",
-  /** Фарбувати еквалайзер, прогрес і текст пісні кольором обкладинки. */
-  coverAccent: true,
+  /** Акцент (еквалайзер, прогрес, гучність, поточний рядок): "cover" | "custom" | "theme". */
+  accentMode: "cover",
+  accentColor: "#7ee787",
+  /** Свій колір тексту; порожній рядок — стандартний (білий). */
+  textColor: "",
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
   showLyrics: true,
   /** Позиція острова: край ("top" | "bottom"), прив'язка ("left" | "center" | "right")
@@ -41,6 +44,10 @@ export async function loadSettings() {
   // з кольору, щоб у тих, хто оновився, острів лишився таким самим.
   if ((await store.get("theme")) == null) {
     result.theme = themeFromColor(result.islandColor);
+  }
+  // У першій версії кроку 17 був лише перемикач coverAccent (так / ні).
+  if ((await store.get("accentMode")) == null && (await store.get("coverAccent")) === false) {
+    result.accentMode = "theme";
   }
   return result;
 }

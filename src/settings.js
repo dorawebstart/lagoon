@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { setLanguage, t } from "./i18n.js";
 import { loadSettings, saveSettings } from "./settings-store.js";
 import { buildHooksConfig } from "./hooks-config.js";
+import { PALETTES } from "./palettes.js";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 
 const languageInputs = document.querySelectorAll('input[name="language"]');
@@ -123,13 +124,75 @@ async function init() {
   customColor.addEventListener("input", () => showColor(customColor.value));
   customColor.addEventListener("change", () => save({ theme: "custom", islandColor: customColor.value }));
 
-  const coverAccent = document.querySelector("#cover-accent");
-  coverAccent.checked = settings.coverAccent;
-  coverAccent.addEventListener("change", () => save({ coverAccent: coverAccent.checked }));
-
+  setupColors(settings);
   setupPosition(settings);
   await setupAutostart();
   await setupClaudeSection();
+}
+
+/** Біла «стандартна» підстановка для палітри, коли свій колір тексту не вибрано. */
+const DEFAULT_TEXT = "#ffffff";
+
+/**
+ * Кольори: готові палітри, акцент (обкладинка / свій / стандартний) і колір тексту.
+ * Кожна зміна зберігається одразу — острів оновлюється без перезапуску.
+ */
+function setupColors(settings) {
+  const accentInputs = document.querySelectorAll('input[name="accent"]');
+  const accentRow = document.querySelector("#accent-row");
+  const accentColor = document.querySelector("#accent-color");
+  const textColor = document.querySelector("#text-color");
+
+  const showAccent = (mode, color) => {
+    for (const input of accentInputs) input.checked = input.value === mode;
+    accentRow.hidden = mode !== "custom";
+    accentColor.value = color;
+  };
+  const showText = (color) => {
+    textColor.value = color || DEFAULT_TEXT;
+  };
+  showAccent(settings.accentMode, settings.accentColor);
+  showText(settings.textColor);
+
+  for (const input of accentInputs) {
+    input.addEventListener("change", () => {
+      showAccent(input.value, accentColor.value);
+      save({ accentMode: input.value });
+    });
+  }
+  // "change" — коли палітру кольорів закрили (а не на кожен рух миші)
+  accentColor.addEventListener("change", () => save({ accentMode: "custom", accentColor: accentColor.value }));
+  textColor.addEventListener("change", () => save({ textColor: textColor.value }));
+  document.querySelector("#text-reset").addEventListener("click", () => {
+    showText("");
+    save({ textColor: "" });
+  });
+
+  // Палітри: кнопка з міні-пігулкою для кожної з src/palettes.js
+  const container = document.querySelector("#palettes");
+  for (const palette of PALETTES) {
+    const button = document.createElement("button");
+    button.className = "palette";
+    button.innerHTML = `
+      <span class="palette__pill" style="background:${palette.bg};color:${palette.text}">
+        Aa<span class="palette__dot" style="background:${palette.accent}"></span>
+      </span>
+      <span data-i18n="palettes.${palette.id}">${t(`palettes.${palette.id}`)}</span>`;
+    button.addEventListener("click", () => {
+      showTheme("custom");
+      showColor(palette.bg);
+      showAccent("custom", palette.accent);
+      showText(palette.text);
+      save({
+        theme: "custom",
+        islandColor: palette.bg,
+        accentMode: "custom",
+        accentColor: palette.accent,
+        textColor: palette.text,
+      });
+    });
+    container.append(button);
+  }
 }
 
 /**

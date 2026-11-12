@@ -44,11 +44,34 @@
             <span data-i18n="settings.colorCustom"></span>
           </label>
         </div>
-        <label class="row switch-row">
-          <span data-i18n="settings.coverAccent"></span>
-          <input type="checkbox" class="switch" id="cover-accent" />
+      </section>
+
+      <section class="field">
+        <h2 data-i18n="settings.palettes"></h2>
+        <!-- Кнопки палітр створює settings.js з src/palettes.js -->
+        <div class="palettes" id="palettes"></div>
+      </section>
+
+      <section class="field">
+        <h2 data-i18n="settings.accent"></h2>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="accent" value="cover" /> <span data-i18n="accent.cover"></span></label>
+          <label><input type="radio" name="accent" value="custom" /> <span data-i18n="accent.custom"></span></label>
+          <label><input type="radio" name="accent" value="theme" /> <span data-i18n="accent.theme"></span></label>
+        </div>
+        <label class="row color-row" id="accent-row" hidden>
+          <span data-i18n="settings.accentPick"></span>
+          <input type="color" class="color-input" id="accent-color" />
         </label>
-        <p class="hint" data-i18n="settings.coverAccentHint"></p>
+        <p class="hint" data-i18n="settings.accentHint"></p>
+
+        <div class="row color-row">
+          <span data-i18n="settings.textColor"></span>
+          <span class="color-pair">
+            <button class="link" id="text-reset" data-i18n="settings.textReset"></button>
+            <input type="color" class="color-input" id="text-color" />
+          </span>
+        </div>
       </section>
 
       <section class="field">
