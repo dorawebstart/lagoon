@@ -230,6 +230,11 @@ code {
   cursor: pointer;
 }
 
+/* Перемикач під іншими елементами розділу (як «Колір з обкладинки» під темою) */
+.field > .switch-row:not(:first-child) {
+  margin-top: 12px;
+}
+
 .switch {
   appearance: none;
   position: relative;

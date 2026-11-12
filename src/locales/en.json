@@ -20,7 +20,9 @@
     "positionReset": "Reset position",
     "positionHint": "Drag the island with the mouse along the edge or to the other edge — it snaps to the nearest one.",
     "saved": "Saved",
-    "theme": "Theme"
+    "theme": "Theme",
+    "coverAccent": "Color from cover",
+    "coverAccentHint": "Equalizer, progress, volume and lyrics take the cover color"
   },
   "agent": {
     "working": "Working…",

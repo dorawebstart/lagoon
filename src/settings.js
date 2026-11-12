@@ -123,6 +123,10 @@ async function init() {
   customColor.addEventListener("input", () => showColor(customColor.value));
   customColor.addEventListener("change", () => save({ theme: "custom", islandColor: customColor.value }));
 
+  const coverAccent = document.querySelector("#cover-accent");
+  coverAccent.checked = settings.coverAccent;
+  coverAccent.addEventListener("change", () => save({ coverAccent: coverAccent.checked }));
+
   setupPosition(settings);
   await setupAutostart();
   await setupClaudeSection();

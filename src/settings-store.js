@@ -11,6 +11,8 @@ export const DEFAULTS = {
   /** Тема острова: "classic" | "graphite" | "glass" | "custom" (свій колір — islandColor). */
   theme: "classic",
   islandColor: "#000000",
+  /** Фарбувати еквалайзер, прогрес і текст пісні кольором обкладинки. */
+  coverAccent: true,
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
   showLyrics: true,
   /** Позиція острова: край ("top" | "bottom"), прив'язка ("left" | "center" | "right")

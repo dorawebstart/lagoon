@@ -6,6 +6,7 @@ import { setupVolume } from "./components/volume.js";
 import { setupAgent } from "./components/agent.js";
 import { setupLyrics } from "./components/lyrics.js";
 import { setupDrag } from "./components/drag.js";
+import { setupCoverAccent } from "./components/accent.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -18,6 +19,7 @@ setupPlayer(island);
 setupVolume(island);
 const agent = setupAgent(island, expander);
 setupDrag(island, expander);
+const coverAccent = setupCoverAccent();
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -29,6 +31,7 @@ function applySettings(settings) {
   setLanguage(settings.language);
   setClockLocale(getLocale());
   applyTheme(settings.theme, settings.islandColor);
+  coverAccent.setEnabled(settings.coverAccent);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
 }
