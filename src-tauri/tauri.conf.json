@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Lagoon",
-        "width": 240,
-        "height": 56,
+        "width": 420,
+        "height": 200,
         "resizable": false,
         "maximizable": false,
         "minimizable": false,

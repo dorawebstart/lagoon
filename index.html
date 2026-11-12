@@ -10,7 +10,16 @@
 
   <body>
     <div class="island" id="island">
-      <time class="island__clock" id="clock">--:--</time>
+      <!-- Згорнутий стан: лише годинник -->
+      <div class="island__compact">
+        <time class="island__clock" data-clock>--:--</time>
+      </div>
+
+      <!-- Розгорнутий стан: поки великий годинник і дата; далі тут буде плеєр -->
+      <div class="island__expanded">
+        <time class="island__big-clock" data-clock>--:--</time>
+        <span class="island__date" id="date"></span>
+      </div>
     </div>
   </body>
 </html>
