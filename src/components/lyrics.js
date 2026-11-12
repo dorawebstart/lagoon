@@ -60,7 +60,9 @@ export function setupLyrics({ stage, track, toggle }) {
 
   /** Перебудовує «стрічку» рядків. Порожній текст = програш, показуємо ♪. */
   function setLines(next) {
-    lines = next;
+    // Вступ до першого рядка: додаємо порожній рядок на 0:00, щоб посередині
+    // острівця був ♪, а не порожнеча з одним сірим рядком унизу.
+    lines = next.length && next[0].timeMs > 0 ? [{ timeMs: 0, text: "" }, ...next] : next;
     track.replaceChildren(
       ...lines.map((line) => {
         const row = document.createElement("div");
