@@ -8,7 +8,7 @@ use std::time::Duration;
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
-use crate::position;
+use crate::{position, visibility};
 
 /// Label вікна налаштувань (його згадує capabilities/default.json).
 pub const SETTINGS_LABEL: &str = "settings";
@@ -58,6 +58,9 @@ pub const HOVER_EVENT: &str = "island:hover";
 /// Як часто перевіряти, де курсор. 30 мс ≈ 33 рази на секунду: досить швидко,
 /// щоб не помічати затримки, і майже не навантажує процесор.
 const POLL_INTERVAL: Duration = Duration::from_millis(30);
+
+/// Поки острів схований — рідко: лише щоб помітити, що його знову показали.
+const HIDDEN_INTERVAL: Duration = Duration::from_millis(250);
 
 /// Під час перетягування — частіше, щоб вікно плавно йшло за курсором.
 const DRAG_INTERVAL: Duration = Duration::from_millis(10);
@@ -137,6 +140,14 @@ pub fn start_cursor_watcher(window: WebviewWindow) {
                 // Після перетягування стан наведення треба перевірити заново.
                 last_over = None;
                 thread::sleep(DRAG_INTERVAL);
+                continue;
+            }
+
+            // Острів схований — нічого не відстежуємо, лише чекаємо.
+            // Після показу стан наведення перевіримо заново.
+            if !visibility::is_visible(window.app_handle()) {
+                last_over = None;
+                thread::sleep(HIDDEN_INTERVAL);
                 continue;
             }
 
