@@ -54,6 +54,11 @@ body {
   height: 168px;
 }
 
+/* Є повзунок гучності — плеєр вищий на один рядок (вікно 200 px, вміщається) */
+.island.is-expanded.has-media.has-volume {
+  height: 190px;
+}
+
 /* Обидва стани лежать один на одному і плавно змінюють прозорість */
 .island__compact,
 .island__expanded {
@@ -340,6 +345,74 @@ body {
 .ctrl--main {
   width: 40px;
   height: 40px;
+}
+
+/* ───────── Гучність ───────── */
+
+.player__volume {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.island.has-volume .player__volume {
+  display: flex;
+}
+
+.vol-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Запасний варіант: керуємо гучністю системи — показуємо підпис «Система» */
+.player__volume-scope {
+  display: none;
+  font-size: 11px;
+}
+
+.island.volume-system .player__volume-scope {
+  display: block;
+}
+
+/* Повзунок: прибираємо стандартний вигляд і малюємо свій, як прогрес-бар */
+.volume {
+  --fill: 0%;
+  flex: 1;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+/* Доріжка: біла зліва від повзунка (--fill), напівпрозора справа */
+.volume::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    #fff var(--fill),
+    rgba(255, 255, 255, 0.18) var(--fill)
+  );
+}
+
+.volume::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px; /* центруємо кружечок на доріжці висотою 4 px */
+  border-radius: 50%;
+  background: #fff;
+  appearance: none;
+  transition: transform 120ms ease;
+}
+
+.volume:hover::-webkit-slider-thumb,
+.volume:active::-webkit-slider-thumb {
+  transform: scale(1.2);
 }
 
 .island.is-playing .icon-play,
