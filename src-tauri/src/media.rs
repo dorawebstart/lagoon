@@ -53,6 +53,8 @@ pub struct MediaState {
     /// Коли позицію було виміряно (Unix-час у мс). Фронтенд сам
     /// «докручує» прогрес від цього моменту, тож опитувати нічого не треба.
     pub updated_at_ms: i64,
+    /// Чи дозволяє плеєр перемотку. Якщо false — прогрес-бар лише для перегляду.
+    pub can_seek: bool,
     /// Обкладинка як data-URL ("data:image/png;base64,...") або None.
     pub thumbnail: Option<String>,
 }
@@ -99,14 +101,7 @@ pub enum MediaAction {
 /// `Result<(), String>`: у разі помилки JS отримає відхилений Promise з текстом.
 #[tauri::command]
 pub async fn media_control(action: MediaAction) -> Result<(), String> {
-    // map_err перетворює помилку Windows на String, а `?` одразу повертає її.
-    let manager = SessionManager::RequestAsync()
-        .map_err(|e| e.to_string())?
-        .await
-        .map_err(|e| e.to_string())?;
-    let session = manager
-        .GetCurrentSession()
-        .map_err(|_| "нічого не грає".to_string())?;
+    let session = current_session().await?;
 
     // match повертає значення: асинхронну операцію для потрібної дії.
     let operation = match action {
@@ -123,6 +118,40 @@ pub async fn media_control(action: MediaAction) -> Result<(), String> {
     } else {
         Err("плеєр не підтримує цю дію".to_string())
     }
+}
+
+/// Команда для JS: `invoke("media_seek", { positionMs: 75000 })` — перемотати
+/// на вказану позицію. Tauri сам перетворює `positionMs` з JS на `position_ms`.
+#[tauri::command]
+pub async fn media_seek(position_ms: i64) -> Result<(), String> {
+    let session = current_session().await?;
+
+    // Windows рахує позицію в «тиках» по 100 нс: 1 мс = 10 000 тиків.
+    // max(0) — від'ємної позиції не буває.
+    let ticks = position_ms.max(0) * 10_000;
+    let accepted = session
+        .TryChangePlaybackPositionAsync(ticks)
+        .map_err(|e| e.to_string())?
+        .await
+        .map_err(|e| e.to_string())?;
+    if accepted {
+        Ok(())
+    } else {
+        Err("плеєр не дозволяє перемотку".to_string())
+    }
+}
+
+/// Поточна медіасесія Windows (програма, що грає) або помилка «нічого не грає».
+/// Спільна для команд `media_control` і `media_seek`.
+async fn current_session() -> Result<Session, String> {
+    // map_err перетворює помилку Windows на String, а `?` одразу повертає її.
+    let manager = SessionManager::RequestAsync()
+        .map_err(|e| e.to_string())?
+        .await
+        .map_err(|e| e.to_string())?;
+    manager
+        .GetCurrentSession()
+        .map_err(|_| "нічого не грає".to_string())
 }
 
 /// Сигнали, які обробники подій Windows кидають у канал.
@@ -281,6 +310,13 @@ fn read_state(session: &Session, cache: &mut Option<CachedCover>) -> WinResult<M
     let updated_at_ms =
         timeline.LastUpdatedTime()?.UniversalTime / 10_000 - WINDOWS_TO_UNIX_EPOCH_MS;
 
+    // Чи можна перемотувати. and_then — «якщо Controls() вдалося, спитай
+    // IsPlaybackPositionEnabled()»; будь-яка помилка → вважаємо, що не можна.
+    let can_seek = playback
+        .Controls()
+        .and_then(|controls| controls.IsPlaybackPositionEnabled())
+        .unwrap_or(false);
+
     Ok(MediaState {
         title,
         artist,
@@ -290,6 +326,7 @@ fn read_state(session: &Session, cache: &mut Option<CachedCover>) -> WinResult<M
         position_ms,
         duration_ms,
         updated_at_ms,
+        can_seek,
         thumbnail,
     })
 }
@@ -330,11 +367,12 @@ fn publish(app: &AppHandle, state: Option<MediaState>) {
         #[cfg(debug_assertions)]
         match &state {
             Some(s) => eprintln!(
-                "media: {} - {} [{}] playing={} {}/{} ms cover={}",
+                "media: {} - {} [{}] playing={} seek={} {}/{} ms cover={}",
                 s.title,
                 s.artist,
                 s.app_id,
                 s.is_playing,
+                s.can_seek,
                 s.position_ms,
                 s.duration_ms,
                 s.thumbnail.is_some()
