@@ -25,6 +25,9 @@ tauri-plugin-store = "2"
 windows = { version = "0.62", features = ["Media_Control", "Foundation", "Foundation_Collections", "Storage_Streams", "Win32_System_WinRT"] }
 base64 = "0.22"
 windows-future = "0.3"
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "1", features = ["net", "sync", "time"] }
+uuid = { version = "1", features = ["v4"] }
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
