@@ -17,7 +17,7 @@ use std::time::Duration;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 use windows::Foundation::TypedEventHandler;
 use windows::Media::Control::{
@@ -67,6 +67,52 @@ pub struct MediaStore(Mutex<Option<MediaState>>);
 pub fn media_current(store: State<MediaStore>) -> Option<MediaState> {
     // clone() — віддаємо копію, а оригінал лишається в сховищі.
     store.0.lock().unwrap().clone()
+}
+
+/// Дія з кнопок плеєра. З JS приходить рядком: "playPause" | "next" | "previous" —
+/// serde сам перетворює його на варіант enum (завдяки `rename_all`).
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum MediaAction {
+    PlayPause,
+    Next,
+    Previous,
+}
+
+/// Команда для JS: `invoke("media_control", { action: "playPause" })`.
+///
+/// `async fn` — асинхронна функція: Tauri запускає її у фоновому пулі потоків,
+/// тож інтерфейс не «зависає», поки Windows виконує дію.
+/// Усередині `.await` означає «почекай результат, але не блокуй потік» —
+/// так само, як `await` у JavaScript.
+///
+/// `Result<(), String>`: у разі помилки JS отримає відхилений Promise з текстом.
+#[tauri::command]
+pub async fn media_control(action: MediaAction) -> Result<(), String> {
+    // map_err перетворює помилку Windows на String, а `?` одразу повертає її.
+    let manager = SessionManager::RequestAsync()
+        .map_err(|e| e.to_string())?
+        .await
+        .map_err(|e| e.to_string())?;
+    let session = manager
+        .GetCurrentSession()
+        .map_err(|_| "нічого не грає".to_string())?;
+
+    // match повертає значення: асинхронну операцію для потрібної дії.
+    let operation = match action {
+        MediaAction::PlayPause => session.TryTogglePlayPauseAsync(),
+        MediaAction::Next => session.TrySkipNextAsync(),
+        MediaAction::Previous => session.TrySkipPreviousAsync(),
+    }
+    .map_err(|e| e.to_string())?;
+
+    // Windows повертає true/false — чи програма-плеєр прийняла команду.
+    let accepted = operation.await.map_err(|e| e.to_string())?;
+    if accepted {
+        Ok(())
+    } else {
+        Err("плеєр не підтримує цю дію".to_string())
+    }
 }
 
 /// Сигнали, які обробники подій Windows кидають у канал.

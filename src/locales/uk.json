@@ -11,6 +11,11 @@
     "claude": "Claude Code: порт, токен і конфіг hooks",
     "saved": "Збережено"
   },
+  "player": {
+    "playPause": "Відтворити / пауза",
+    "previous": "Попередній трек",
+    "next": "Наступний трек"
+  },
   "colors": {
     "black": "Чорний",
     "graphite": "Графіт",

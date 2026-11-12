@@ -35,4 +35,10 @@ export function setLanguage(language) {
   for (const el of document.querySelectorAll("[data-i18n]")) {
     el.textContent = t(el.dataset.i18n);
   }
+  // Підписи для кнопок-іконок: підказка при наведенні і текст для екранних читалок
+  for (const el of document.querySelectorAll("[data-i18n-label]")) {
+    const label = t(el.dataset.i18nLabel);
+    el.setAttribute("aria-label", label);
+    el.title = label;
+  }
 }

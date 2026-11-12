@@ -16,6 +16,8 @@ body {
   color: #fff;
 }
 
+/* ───────── Острів ───────── */
+
 .island {
   --island-color: #000;
   /* Крива в стилі iOS: швидкий старт і дуже м'яке гальмування */
@@ -37,10 +39,19 @@ body {
     border-radius var(--duration) var(--ease-island);
 }
 
+/* Грає музика: згорнута пігулка ширша — є місце для обкладинки і еквалайзера */
+.island.has-media {
+  width: 200px;
+}
+
 .island.is-expanded {
   width: 380px;
   height: 160px;
   border-radius: 34px;
+}
+
+.island.is-expanded.has-media {
+  height: 168px;
 }
 
 /* Обидва стани лежать один на одному і плавно змінюють прозорість */
@@ -48,16 +59,12 @@ body {
 .island__expanded {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: opacity 180ms ease;
 }
 
 .island__expanded {
-  flex-direction: column;
-  gap: 4px;
   opacity: 0;
+  pointer-events: none;
 }
 
 .island.is-expanded .island__compact {
@@ -66,25 +73,130 @@ body {
 
 .island.is-expanded .island__expanded {
   opacity: 1;
+  pointer-events: auto;
   /* Вміст розгорнутого стану з'являється трохи пізніше, коли острів уже виріс */
   transition-delay: 90ms;
 }
 
-.island__clock,
-.island__big-clock {
-  font-weight: 600;
-  /* Цифри однакової ширини, щоб текст не «тремтів» при зміні хвилин */
-  font-variant-numeric: tabular-nums;
+/* ───────── Згорнутий стан ───────── */
+
+.island__compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 7px;
+}
+
+.island.has-media .island__compact {
+  justify-content: space-between;
 }
 
 .island__clock {
   font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.02em;
+  /* Цифри однакової ширини, щоб текст не «тремтів» при зміні хвилин */
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-cover {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+/* Без музики обкладинки й еквалайзера в пігулці немає */
+.island:not(.has-media) .island__compact .mini-cover,
+.island:not(.has-media) .island__compact .eq {
+  display: none;
+}
+
+/* ───────── Обкладинка ───────── */
+
+.cover {
+  flex: none;
+  background: linear-gradient(135deg, #3a3a3c, #1c1c1e) center / cover no-repeat;
+}
+
+/* Якщо обкладинки немає — нота замість картинки */
+.cover:not(.has-image)::after {
+  content: "♪";
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ───────── Еквалайзер ───────── */
+
+.eq {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 22px;
+  height: 16px;
+  justify-content: center;
+}
+
+.eq i {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent, #7ee787);
+  transform-origin: center;
+  animation: eq-bounce 900ms ease-in-out infinite;
+}
+
+.eq i:nth-child(2) {
+  animation-delay: -300ms;
+}
+.eq i:nth-child(3) {
+  animation-delay: -600ms;
+}
+.eq i:nth-child(4) {
+  animation-delay: -150ms;
+}
+
+@keyframes eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* Пауза: смужки завмирають низенькими */
+.island:not(.is-playing) .eq i {
+  animation: none;
+  transform: scaleY(0.25);
+  opacity: 0.6;
+}
+
+.eq--big {
+  align-self: flex-start;
+  height: 20px;
+  margin-top: 4px;
+}
+
+/* ───────── Розгорнутий стан: без музики ───────── */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 100%;
 }
 
 .island__big-clock {
   font-size: 44px;
+  font-weight: 600;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .island__date {
@@ -92,17 +204,146 @@ body {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* Тимчасово (крок 6): що грає — одним рядком */
-.island__now-playing {
-  max-width: 320px;
-  margin-top: 6px;
+.island.has-media .home,
+.island:not(.has-media) .player {
+  display: none;
+}
+
+/* ───────── Розгорнутий стан: плеєр ───────── */
+
+.player {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 18px 22px 12px;
+}
+
+.player__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player__cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+}
+
+.player__meta {
+  flex: 1;
+  min-width: 0; /* щоб довгі назви обрізалися «…», а не розпирали блок */
+}
+
+.player__title,
+.player__artist {
   overflow: hidden;
-  font-size: 13px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.island__now-playing[hidden] {
+.player__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.player__artist {
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.player__progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.player__time {
+  width: 36px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.player__time:last-child {
+  text-align: right;
+}
+
+.player__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.player__bar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* Тривалість невідома (наприклад, пряма трансляція) — ховаємо прогрес */
+.island.no-timeline .player__progress {
+  visibility: hidden;
+}
+
+.player__controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  margin-top: 6px;
+}
+
+.ctrl {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.ctrl:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ctrl:active {
+  transform: scale(0.9);
+}
+
+.ctrl svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.ctrl--main svg {
+  width: 26px;
+  height: 26px;
+}
+
+.ctrl--main {
+  width: 40px;
+  height: 40px;
+}
+
+.island.is-playing .icon-play,
+.island:not(.is-playing) .icon-pause {
   display: none;
 }
 
@@ -112,5 +353,9 @@ body {
   .island__compact,
   .island__expanded {
     transition: none;
+  }
+  .eq i {
+    animation: none;
+    transform: scaleY(0.6);
   }
 }

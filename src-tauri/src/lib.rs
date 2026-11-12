@@ -26,7 +26,8 @@ pub fn run() {
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
-            media::media_current
+            media::media_current,
+            media::media_control
         ])
         // Хрестик у вікні налаштувань лише ховає його, а не знищує:
         // так наступне відкриття миттєве, а застосунок не завершується.
