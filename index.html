@@ -73,6 +73,17 @@
               <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z" /></svg>
             </button>
           </div>
+
+          <!-- Гучність програми-плеєра (або системи, якщо програму не знайдено) -->
+          <div class="player__volume">
+            <svg class="vol-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" /></svg>
+            <input class="volume" id="volume" type="range" min="0" max="100" step="1" value="0" data-i18n-label="player.volume" />
+            <svg class="vol-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9h4l5-4v14l-5-4H4z" />
+              <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <span class="player__volume-scope" data-i18n="player.system"></span>
+          </div>
         </div>
       </div>
     </div>

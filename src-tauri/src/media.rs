@@ -62,6 +62,16 @@ pub struct MediaState {
 #[derive(Default)]
 pub struct MediaStore(Mutex<Option<MediaState>>);
 
+impl MediaStore {
+    /// Яка програма зараз грає (`app_id`), або None, якщо нічого не грає.
+    /// Потрібно audio.rs, щоб знайти аудіосесію саме цієї програми.
+    /// `as_ref()` — дивимося на вміст Option, не забираючи його зі сховища.
+    pub fn current_app_id(&self) -> Option<String> {
+        let state = self.0.lock().unwrap();
+        state.as_ref().map(|s| s.app_id.clone())
+    }
+}
+
 /// Команда для JS: `invoke("media_current")` — поточний стан (або null).
 #[tauri::command]
 pub fn media_current(store: State<MediaStore>) -> Option<MediaState> {

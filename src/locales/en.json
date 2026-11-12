@@ -29,7 +29,9 @@
   "player": {
     "playPause": "Play / pause",
     "previous": "Previous track",
-    "next": "Next track"
+    "next": "Next track",
+    "volume": "Volume",
+    "system": "System"
   },
   "colors": {
     "black": "Black",

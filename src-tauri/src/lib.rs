@@ -4,6 +4,7 @@
 // `mod назва;` каже компілятору: «є модуль, його код — у файлі назва.rs».
 // Без цих рядків файли просто ігнорувалися б.
 mod agent;
+mod audio;
 mod media;
 mod settings;
 mod tray;
@@ -31,6 +32,8 @@ pub fn run() {
             window::set_hit_region,
             media::media_current,
             media::media_control,
+            audio::audio_volume,
+            audio::audio_set_volume,
             agent::agent_info,
             agent::agent_respond
         ])
