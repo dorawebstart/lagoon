@@ -27,6 +27,16 @@ function formatTime(ms) {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
 }
 
+/**
+ * Поточна позиція пісні (мс): остання відома + скільки минуло, якщо грає.
+ * Експортуємо, бо те саме потрібно тексту пісні (lyrics.js).
+ * @param {MediaState} state
+ */
+export function positionOf(state) {
+  const drift = state.isPlaying ? Date.now() - state.updatedAtMs : 0;
+  return Math.min(state.durationMs, state.positionMs + Math.max(0, drift));
+}
+
 export function setupPlayer(island) {
   const covers = island.querySelectorAll("[data-cover]");
   const title = island.querySelector("#track-title");
@@ -44,9 +54,7 @@ export function setupPlayer(island) {
 
   /** Поточна позиція: остання відома + скільки минуло, якщо грає. */
   function currentPosition() {
-    if (!state) return 0;
-    const drift = state.isPlaying ? Date.now() - state.updatedAtMs : 0;
-    return Math.min(state.durationMs, state.positionMs + Math.max(0, drift));
+    return state ? positionOf(state) : 0;
   }
 
   function renderProgress() {
