@@ -7,6 +7,7 @@ mod agent;
 mod audio;
 mod lyrics;
 mod media;
+mod meter;
 mod position;
 mod settings;
 mod tray;
@@ -31,6 +32,7 @@ pub fn run() {
         .manage(media::MediaStore::default())
         .manage(position::DragState::default())
         .manage(position::LayoutState::default())
+        .manage(meter::WaveEnabled::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -39,6 +41,7 @@ pub fn run() {
             media::media_seek,
             audio::audio_volume,
             audio::audio_set_volume,
+            meter::audio_wave,
             lyrics::lyrics_get,
             position::island_placement,
             position::island_drag_start,
@@ -56,6 +59,9 @@ pub fn run() {
 
             // Фоновий потік, що стежить за музикою (Spotify, YouTube…)
             media::start(handle.clone());
+
+            // Рівень звуку для «хвилі» (працює лише поки вона увімкнена і грає музика)
+            meter::start(handle.clone());
 
             // HTTP-сервер для hooks Claude Code (127.0.0.1:47823).
             // manage() тут, а не в Builder, бо серверу потрібен уже готовий

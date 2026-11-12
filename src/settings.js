@@ -126,6 +126,10 @@ async function init() {
 
   setupColors(settings);
   setupSizes(settings);
+
+  const showWave = document.querySelector("#show-wave");
+  showWave.checked = settings.showWave;
+  showWave.addEventListener("change", () => save({ showWave: showWave.checked }));
   setupPosition(settings);
   await setupAutostart();
   await setupClaudeSection();

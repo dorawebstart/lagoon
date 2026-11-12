@@ -7,6 +7,7 @@ import { setupAgent } from "./components/agent.js";
 import { setupLyrics } from "./components/lyrics.js";
 import { setupDrag } from "./components/drag.js";
 import { setupAccent } from "./components/accent.js";
+import { setupWave } from "./components/wave.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -20,6 +21,7 @@ setupVolume(island);
 const agent = setupAgent(island, expander);
 setupDrag(island, expander);
 const accent = setupAccent();
+const wave = setupWave(island);
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -34,6 +36,7 @@ function applySettings(settings) {
   accent.setMode(settings.accentMode, settings.accentColor);
   applyTextColor(settings.textColor);
   applySizes(settings);
+  wave.setEnabled(settings.showWave);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
 }
