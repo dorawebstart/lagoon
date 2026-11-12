@@ -6,18 +6,50 @@ use std::thread;
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, State, WebviewWindow};
+use tauri::{
+    AppHandle, Emitter, Manager, PhysicalPosition, State, WebviewUrl, WebviewWindow,
+    WebviewWindowBuilder,
+};
 
-/// Label вікна налаштувань з tauri.conf.json.
+/// Label вікна налаштувань (його згадує capabilities/default.json).
 pub const SETTINGS_LABEL: &str = "settings";
 
-/// Показує вікно налаштувань і передає йому фокус.
-/// Помилки тут ігноруємо: якщо вікно не відкрилося, острів працює далі.
+/// Аргументи для WebView2 (рушій сторінок у Windows). Мають бути однакові для
+/// всіх вікон, бо вікна ділять один процес браузера.
+///
+/// `--disable-gpu` — малювати без відеокарти: для маленької пігулки з CSS-анімаціями
+/// цього досить, а WebView2 не запускає окремий GPU-процес (~80 МБ пам'яті).
+/// Решта — стандартні аргументи Tauri, які треба зберегти, коли задаємо свої.
+/// Те саме значення стоїть в `additionalBrowserArgs` вікна острова в tauri.conf.json.
+pub const BROWSER_ARGS: &str =
+    "--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection";
+
+/// Відкриває вікно налаштувань (або показує вже відкрите).
+///
+/// Вікно створюється лише тоді, коли воно потрібне, і повністю закривається
+/// хрестиком: кожне вікно WebView2 — це окремий процес, тож поки налаштування
+/// закриті, острів займає менше пам'яті.
 pub fn open_settings(app: &AppHandle) {
     if let Some(settings) = app.get_webview_window(SETTINGS_LABEL) {
-        let _ = settings.show();
+        // Помилки ігноруємо: якщо не вдалося, острів однаково працює далі.
         let _ = settings.unminimize();
         let _ = settings.set_focus();
+        return;
+    }
+
+    // Builder: ланцюжок налаштувань, а в кінці build() створює вікно.
+    let result =
+        WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("settings.html".into()))
+            .title("Lagoon")
+            .inner_size(440.0, 640.0)
+            .resizable(false)
+            .maximizable(false)
+            .center()
+            .additional_browser_args(BROWSER_ARGS)
+            .build();
+
+    if let Err(error) = result {
+        eprintln!("settings: не вдалося відкрити вікно: {error}");
     }
 }
 

@@ -28,6 +28,13 @@ import { t } from "../i18n.js";
  * @property {string} detail
  */
 
+/**
+ * Захист від випадкового рішення: після появи нового запиту кнопки
+ * не реагують стільки мс. Інакше клік «Дозволити» для попереднього запиту
+ * міг би схвалити і наступний, що з'явився під курсором.
+ */
+const ARM_DELAY_MS = 500;
+
 /** Скільки показувати «Готово ✓». */
 const DONE_MS = 4000;
 /** Якщо від Claude Code довго немає подій — вважаємо, що він уже не працює. */
@@ -51,6 +58,12 @@ export function setupAgent(island, expander) {
   /** @type {PermissionAsk[]} — черга запитів (кілька сесій можуть питати одночасно) */
   const queue = [];
 
+  // Який запит зараз показано і коли він з'явився
+  let shownId = null;
+  let shownAt = 0;
+  // Запит, для якого користувач НАТИСНУВ кнопку (pointerdown) уже після його появи
+  let pressedFor = null;
+
   function setMode(next, text = "", ttl = STALE_MS) {
     mode = next;
     label = text;
@@ -66,6 +79,15 @@ export function setupAgent(island, expander) {
 
     const ask = queue[0];
     island.classList.toggle("is-asking", Boolean(ask));
+    if (ask && ask.id !== shownId) {
+      // Новий запит на екрані: «роззброюємо» кнопки
+      shownId = ask.id;
+      shownAt = performance.now();
+      pressedFor = null;
+      document.activeElement?.blur();
+    }
+    if (!ask) shownId = null;
+
     if (ask) {
       askTitle.textContent = t("agent.permissionTitle").replace("{tool}", ask.tool || "?");
       askProject.textContent = ask.project;
@@ -116,10 +138,23 @@ export function setupAgent(island, expander) {
   });
 
   // Кнопки «Дозволити / Відхилити / У терміналі»
+  const armed = () => performance.now() - shownAt >= ARM_DELAY_MS;
+
   island.querySelectorAll("[data-decision]").forEach((button) => {
-    button.addEventListener("click", async () => {
+    // Натискання має початися вже на поточному запиті і не одразу після його появи
+    button.addEventListener("pointerdown", () => {
+      pressedFor = queue[0] && armed() ? queue[0].id : null;
+    });
+
+    button.addEventListener("click", async (event) => {
       const ask = queue[0];
       if (!ask) return;
+      // event.detail === 0 — «клік» з клавіатури (Enter/Space), без миші
+      const fromKeyboard = event.detail === 0;
+      const valid = fromKeyboard ? armed() : pressedFor === ask.id;
+      pressedFor = null;
+      if (!valid) return;
+      button.blur();
       // Прибираємо одразу, не чекаючи події від Rust
       queue.shift();
       setMode("working", t("agent.working"));

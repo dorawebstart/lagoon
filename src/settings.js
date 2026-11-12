@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { setLanguage, t } from "./i18n.js";
 import { loadSettings, saveSettings } from "./settings-store.js";
 import { buildHooksConfig } from "./hooks-config.js";
+import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 
 const languageInputs = document.querySelectorAll('input[name="language"]');
 const colorInputs = document.querySelectorAll('input[name="color"]');
@@ -105,7 +106,27 @@ async function init() {
   customColor.addEventListener("input", () => showColor(customColor.value));
   customColor.addEventListener("change", () => save({ islandColor: customColor.value }));
 
+  await setupAutostart();
   await setupClaudeSection();
+}
+
+/**
+ * Автозапуск: стан беремо з самої Windows (запис у реєстрі), а не з settings.json,
+ * щоб перемикач завжди показував правду.
+ */
+async function setupAutostart() {
+  const toggle = document.querySelector("#autostart");
+  toggle.checked = await isEnabled().catch(() => false);
+  toggle.addEventListener("change", async () => {
+    try {
+      if (toggle.checked) await enable();
+      else await disable();
+      flash(t("settings.saved"));
+    } catch (error) {
+      console.warn("autostart:", error);
+      toggle.checked = !toggle.checked; // не вдалося — повертаємо як було
+    }
+  });
 }
 
 init();
