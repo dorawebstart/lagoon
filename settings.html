@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lagoon</title>
+    <link rel="stylesheet" href="/src/settings.css" />
+    <script type="module" src="/src/settings.js"></script>
+  </head>
+
+  <body>
+    <main class="settings">
+      <h1 data-i18n="settings.title"></h1>
+
+      <section class="field">
+        <h2 data-i18n="settings.language"></h2>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="language" value="uk" /> <span>Українська</span></label>
+          <label><input type="radio" name="language" value="en" /> <span>English</span></label>
+        </div>
+        <p class="hint" data-i18n="settings.languageHint"></p>
+      </section>
+
+      <section class="field">
+        <h2 data-i18n="settings.color"></h2>
+        <div class="swatches" id="swatches">
+          <label class="swatch" style="--swatch: #000000">
+            <input type="radio" name="color" value="#000000" />
+            <span data-i18n="colors.black"></span>
+          </label>
+          <label class="swatch" style="--swatch: #2c2c2e">
+            <input type="radio" name="color" value="#2c2c2e" />
+            <span data-i18n="colors.graphite"></span>
+          </label>
+          <label class="swatch" style="--swatch: #14213d">
+            <input type="radio" name="color" value="#14213d" />
+            <span data-i18n="colors.navy"></span>
+          </label>
+          <label class="swatch" style="--swatch: #3d1f3d">
+            <input type="radio" name="color" value="#3d1f3d" />
+            <span data-i18n="colors.plum"></span>
+          </label>
+          <label class="swatch swatch--custom">
+            <input type="color" id="custom-color" value="#000000" />
+            <span data-i18n="settings.colorCustom"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Наступні пункти з'являться в кроках 9 і 10 -->
+      <section class="field field--disabled">
+        <div class="row">
+          <span data-i18n="settings.autostart"></span>
+          <span class="badge" data-i18n="settings.comingSoon"></span>
+        </div>
+        <div class="row">
+          <span data-i18n="settings.claude"></span>
+          <span class="badge" data-i18n="settings.comingSoon"></span>
+        </div>
+      </section>
+
+      <p class="status" id="status" aria-live="polite"></p>
+    </main>
+  </body>
+</html>

@@ -26,6 +26,17 @@
         "skipTaskbar": true,
         "focus": false,
         "visible": false
+      },
+      {
+        "label": "settings",
+        "title": "Lagoon",
+        "url": "settings.html",
+        "width": 440,
+        "height": 520,
+        "resizable": false,
+        "maximizable": false,
+        "center": true,
+        "visible": false
       }
     ],
     "security": {
