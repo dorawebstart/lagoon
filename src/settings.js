@@ -1,4 +1,4 @@
-// Вікно налаштувань: мова, колір острова, підключення Claude Code.
+// Вікно налаштувань: мова, тема острова, позиція, підключення Claude Code.
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { setLanguage, t } from "./i18n.js";
@@ -7,6 +7,8 @@ import { buildHooksConfig } from "./hooks-config.js";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 
 const languageInputs = document.querySelectorAll('input[name="language"]');
+const themeInputs = document.querySelectorAll('input[name="theme"]');
+const swatches = document.querySelector("#swatches");
 const colorInputs = document.querySelectorAll('input[name="color"]');
 const edgeInputs = document.querySelectorAll('input[name="edge"]');
 const customColor = document.querySelector("#custom-color");
@@ -21,6 +23,12 @@ function applyLanguage(language) {
   getCurrentWindow()
     .setTitle(t("settings.title"))
     .catch(() => {});
+}
+
+/** Позначає вибрану тему; кольори показуємо лише для теми «Свій колір». */
+function showTheme(theme) {
+  for (const input of themeInputs) input.checked = input.value === theme;
+  swatches.hidden = theme !== "custom";
 }
 
 /** Позначає вибраний колір: один з готових або «свій». */
@@ -86,6 +94,7 @@ async function init() {
 
   applyLanguage(settings.language);
   for (const input of languageInputs) input.checked = input.value === settings.language;
+  showTheme(settings.theme);
   showColor(settings.islandColor);
 
   for (const input of languageInputs) {
@@ -95,17 +104,24 @@ async function init() {
     });
   }
 
+  for (const input of themeInputs) {
+    input.addEventListener("change", () => {
+      showTheme(input.value);
+      save({ theme: input.value });
+    });
+  }
+
   for (const input of colorInputs) {
     input.addEventListener("change", () => {
       showColor(input.value);
-      save({ islandColor: input.value });
+      save({ theme: "custom", islandColor: input.value });
     });
   }
 
   // "input" спрацьовує під час вибору в палітрі, "change" — коли палітру закрили.
   // Зберігаємо лише фінальний колір, щоб не писати файл на кожен рух миші.
   customColor.addEventListener("input", () => showColor(customColor.value));
-  customColor.addEventListener("change", () => save({ islandColor: customColor.value }));
+  customColor.addEventListener("change", () => save({ theme: "custom", islandColor: customColor.value }));
 
   setupPosition(settings);
   await setupAutostart();

@@ -22,16 +22,15 @@
       </section>
 
       <section class="field">
-        <h2 data-i18n="settings.color"></h2>
-        <div class="swatches" id="swatches">
-          <label class="swatch" style="--swatch: #000000">
-            <input type="radio" name="color" value="#000000" />
-            <span data-i18n="colors.black"></span>
-          </label>
-          <label class="swatch" style="--swatch: #2c2c2e">
-            <input type="radio" name="color" value="#2c2c2e" />
-            <span data-i18n="colors.graphite"></span>
-          </label>
+        <h2 data-i18n="settings.theme"></h2>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="theme" value="classic" /> <span data-i18n="themes.classic"></span></label>
+          <label><input type="radio" name="theme" value="graphite" /> <span data-i18n="themes.graphite"></span></label>
+          <label><input type="radio" name="theme" value="glass" /> <span data-i18n="themes.glass"></span></label>
+          <label><input type="radio" name="theme" value="custom" /> <span data-i18n="themes.custom"></span></label>
+        </div>
+        <!-- Кольори для теми «Свій колір» (видно лише коли вона вибрана) -->
+        <div class="swatches" id="swatches" hidden>
           <label class="swatch" style="--swatch: #14213d">
             <input type="radio" name="color" value="#14213d" />
             <span data-i18n="colors.navy"></span>

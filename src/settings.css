@@ -96,9 +96,15 @@ h2 {
   outline-offset: 2px;
 }
 
-/* Кольори острова */
+/* Кольори для теми «Свій колір» */
+/* display у .swatches перекрив би атрибут hidden — тому окреме правило */
+.swatches[hidden] {
+  display: none;
+}
+
 .swatches {
   display: flex;
+  margin-top: 10px;
   justify-content: space-between;
   gap: 6px;
   flex-wrap: wrap;

@@ -10,7 +10,6 @@ import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
 const island = document.querySelector("#island");
-const lyricsBox = document.querySelector("#lyrics");
 
 startClock(document.querySelectorAll("[data-clock]"), document.querySelector("#date"));
 trackHitRegion(island);
@@ -25,16 +24,27 @@ const lyrics = setupLyrics({
   toggle: document.querySelector("#lyrics-toggle"),
 });
 
-/** Застосовує налаштування до острова: мову, колір і показ тексту пісні. */
+/** Застосовує налаштування до острова: мову, тему і показ тексту пісні. */
 function applySettings(settings) {
   setLanguage(settings.language);
   setClockLocale(getLocale());
-  // Колір — обом островам: основному і острівцю з текстом
-  for (const element of [island, lyricsBox]) {
-    element.style.setProperty("--island-color", settings.islandColor);
-  }
+  applyTheme(settings.theme, settings.islandColor);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
+}
+
+/**
+ * Тема — атрибут data-theme на <body> (кольори задає island.css).
+ * «Свій колір» — значення змінної --island-bg на <html> (:root): його
+ * успадковують обидва острови, основний і з текстом пісні.
+ */
+function applyTheme(theme, color) {
+  document.body.dataset.theme = theme;
+  if (theme === "custom") {
+    document.documentElement.style.setProperty("--island-bg", color);
+  } else {
+    document.documentElement.style.removeProperty("--island-bg");
+  }
 }
 
 loadSettings().then(applySettings);

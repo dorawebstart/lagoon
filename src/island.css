@@ -13,7 +13,38 @@ body {
   justify-content: center;
   align-items: flex-start;
   font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  color: #fff;
+  color: var(--island-fg);
+}
+
+/* ───────── Тема ─────────
+   Усі кольори острова — CSS-змінні. Тема = інший набір значень:
+   клас на <body> (data-theme), а «свій колір» JS ставить у --island-bg на :root.
+   Змінні оголошені на :root, тож їх успадковують обидва острови (основний і з текстом). */
+:root {
+  --island-bg: #000; /* фон пігулки */
+  --island-fg: #fff; /* основний текст і значки */
+  --island-muted: rgba(255, 255, 255, 0.58); /* другорядний текст: виконавець, час */
+  --island-dim: rgba(255, 255, 255, 0.42); /* сіріші рядки тексту пісні */
+  --island-track: rgba(255, 255, 255, 0.18); /* доріжки прогресу й гучності */
+  --island-hover: rgba(255, 255, 255, 0.12); /* підсвітка кнопок */
+  --island-faint: rgba(255, 255, 255, 0.08); /* ледь помітні підкладки */
+  --island-rim: transparent; /* тонка рамка (для «Скла») */
+  --island-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--island-rim);
+  --accent: #7ee787; /* еквалайзер (у кроці 17 — колір з обкладинки) */
+}
+
+/* Графіт: темно-сірий замість чорного */
+body[data-theme="graphite"] {
+  --island-bg: #2c2c2e;
+  --island-muted: rgba(255, 255, 255, 0.62);
+}
+
+/* Скло: напівпрозорий темний фон і тонка світла рамка.
+   Справжнього розмиття того, що під островом, немає: розмиття Windows діє на все вікно */
+body[data-theme="glass"] {
+  --island-bg: rgba(18, 20, 26, 0.72);
+  --island-rim: rgba(255, 255, 255, 0.22);
+  --island-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--island-rim);
 }
 
 /* ───────── Острів ───────── */
@@ -25,7 +56,6 @@ body {
 }
 
 .island {
-  --island-color: #000;
   /* Крива в стилі iOS: швидкий старт і дуже м'яке гальмування */
   --ease-island: cubic-bezier(0.32, 0.72, 0, 1);
   --duration: 320ms;
@@ -35,8 +65,8 @@ body {
   height: 34px;
   margin-top: 6px;
   border-radius: 17px;
-  background: var(--island-color);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  background: var(--island-bg);
+  box-shadow: var(--island-shadow);
   overflow: hidden;
   cursor: default;
   transition:
@@ -136,7 +166,7 @@ body {
   display: grid;
   place-items: center;
   height: 100%;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--island-muted);
 }
 
 /* ───────── Еквалайзер ───────── */
@@ -154,7 +184,7 @@ body {
   width: 3px;
   height: 100%;
   border-radius: 2px;
-  background: var(--accent, #7ee787);
+  background: var(--accent);
   transform-origin: center;
   animation: eq-bounce 900ms ease-in-out infinite;
 }
@@ -212,7 +242,7 @@ body {
 
 .island__date {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--island-muted);
 }
 
 .island.has-media .home,
@@ -262,7 +292,7 @@ body {
 .player__artist {
   margin-top: 2px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--island-muted);
 }
 
 .player__progress {
@@ -275,7 +305,7 @@ body {
 .player__time {
   width: 36px;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--island-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -304,7 +334,7 @@ body {
   transition:
     height 120ms ease,
     border-radius 120ms ease;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--island-track);
   overflow: hidden;
 }
 
@@ -312,7 +342,7 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 2px;
-  background: #fff;
+  background: var(--island-fg);
   transform: scaleX(0);
   transform-origin: left;
 }
@@ -346,7 +376,7 @@ body {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: #fff;
+  color: var(--island-fg);
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -354,7 +384,7 @@ body {
 }
 
 .ctrl:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--island-hover);
 }
 
 .ctrl:active {
@@ -384,7 +414,7 @@ body {
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--island-muted);
 }
 
 .island.has-volume .player__volume {
@@ -425,8 +455,8 @@ body {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    #fff var(--fill),
-    rgba(255, 255, 255, 0.18) var(--fill)
+    var(--island-fg) var(--fill),
+    var(--island-track) var(--fill)
   );
 }
 
@@ -435,7 +465,7 @@ body {
   height: 12px;
   margin-top: -4px; /* центруємо кружечок на доріжці висотою 4 px */
   border-radius: 50%;
-  background: #fff;
+  background: var(--island-fg);
   appearance: none;
   transition: transform 120ms ease;
 }
@@ -496,7 +526,6 @@ body.is-dragging * {
 /* ───────── Текст пісні ───────── */
 
 .lyrics {
-  --island-color: #000;
   position: absolute;
   top: 6px;
   right: calc(100% + 10px); /* ліворуч від основного острова з проміжком 10 px */
@@ -505,8 +534,8 @@ body.is-dragging * {
   box-sizing: border-box;
   padding: 3px 16px;
   border-radius: 22px;
-  background: var(--island-color);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  background: var(--island-bg);
+  box-shadow: var(--island-shadow);
   overflow: hidden;
   /* Лише показує текст: кліки проходять крізь нього до програм під ним */
   pointer-events: none;
@@ -533,7 +562,7 @@ body.is-dragging * {
   overflow: hidden;
   font-size: 12px;
   line-height: 20px;
-  color: rgba(255, 255, 255, 0.42); /* проспіваний і наступний — сіріші */
+  color: var(--island-dim); /* проспіваний і наступний — сіріші */
   white-space: nowrap;
   text-overflow: ellipsis;
   transition: color 300ms ease;
@@ -542,7 +571,7 @@ body.is-dragging * {
 .lyrics__line.is-current {
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--island-fg);
 }
 
 /* Кнопка 🎤 праворуч у ряду кнопок плеєра; з'являється, лише якщо текст знайдено */
@@ -652,12 +681,12 @@ body.is-dragging * {
   0%,
   100% {
     box-shadow:
-      0 2px 10px rgba(0, 0, 0, 0.35),
+      var(--island-shadow),
       0 0 0 0 rgba(232, 135, 91, 0);
   }
   50% {
     box-shadow:
-      0 2px 10px rgba(0, 0, 0, 0.35),
+      var(--island-shadow),
       0 0 0 4px rgba(232, 135, 91, 0.55);
   }
 }
@@ -684,7 +713,7 @@ body.is-dragging * {
 .island.is-asking.is-expanded {
   height: 168px;
   box-shadow:
-    0 2px 10px rgba(0, 0, 0, 0.35),
+    var(--island-shadow),
     0 0 0 2px rgba(232, 135, 91, 0.6);
 }
 
@@ -709,7 +738,7 @@ body.is-dragging * {
   margin-left: auto;
   overflow: hidden;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--island-muted);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -720,7 +749,7 @@ body.is-dragging * {
   padding: 8px 10px;
   overflow: hidden;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--island-faint);
   font-family: "Cascadia Mono", Consolas, monospace;
   font-size: 12px;
   line-height: 1.4;
@@ -744,7 +773,7 @@ body.is-dragging * {
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--island-fg);
   cursor: pointer;
   transition:
     filter 120ms ease,
@@ -762,12 +791,12 @@ body.is-dragging * {
 .btn--ghost {
   margin-right: auto;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--island-muted);
   font-weight: 400;
 }
 
 .btn--deny {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--island-hover);
 }
 
 .btn--allow {
