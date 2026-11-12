@@ -107,13 +107,8 @@ body.align-right .stage {
     width 260ms var(--ease-out),
     height 260ms var(--ease-out),
     border-radius 260ms var(--ease-out);
-  /* Позиція «стейджу» вище за шар краплі (drip.js) */
+  /* Острів лежить вище за шар краплі (drip.js) */
   z-index: 1;
-  transform-origin: top center;
-}
-
-body.edge-bottom .island {
-  transform-origin: bottom center;
 }
 
 /* Грає музика: згорнута пігулка ширша — є місце для обкладинки і еквалайзера */
@@ -125,27 +120,9 @@ body.edge-bottom .island {
   width: 380px;
   height: 160px;
   border-radius: 34px;
-  /* Розкриття: пружина з малим «перестрибом» і короткий желейний трус */
+  /* Розкриття: пружина з малим «перестрибом» */
   transition-duration: 440ms;
   transition-timing-function: var(--ease-spring);
-  animation: island-jelly 520ms ease-out 140ms;
-}
-
-/* Желе: ледь помітно стискається й розтягується, поки «осідає» */
-@keyframes island-jelly {
-  0%,
-  100% {
-    transform: scale(1, 1);
-  }
-  35% {
-    transform: scale(1.02, 0.98);
-  }
-  60% {
-    transform: scale(0.992, 1.01);
-  }
-  80% {
-    transform: scale(1.003, 0.998);
-  }
 }
 
 .island.is-expanded.has-media {
@@ -998,10 +975,6 @@ body.edge-bottom .stage.is-dripping .drip-drop {
   .lyrics__track,
   .lyrics__line {
     transition: none;
-  }
-  .island,
-  .island.is-expanded {
-    animation: none;
   }
   .island__expanded,
   body.edge-bottom .island__expanded {
