@@ -10,13 +10,23 @@
 // Знайдені тексти кешуємо на диску (папка кешу застосунку → lyrics/*.json),
 // щоб не питати сервер щоразу, коли пісня грає знову.
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
 const API: &str = "https://lrclib.net/api";
+
+/// Пісні, для яких тексту не знайшлося (ключ — ім'я файлу кешу). Живе, поки
+/// працює програма: щоб не питати сервер щоразу, коли та сама пісня грає знову.
+/// На диск не пишемо — текст можуть додати в LRCLIB пізніше.
+///
+/// `static` — одна змінна на всю програму. `LazyLock` створює її при першому
+/// зверненні, а `Mutex` дозволяє безпечно змінювати її з різних потоків.
+static NOT_FOUND: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 /// Один рядок синхронізованого тексту. У JSON: `{ "timeMs": 12340, "text": "…" }`.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -70,11 +80,17 @@ pub async fn lyrics_get(
         return Ok(Some(cached));
     }
 
+    let key = cache_key(&artist, &title, duration_s);
+    if NOT_FOUND.lock().unwrap().contains(&key) {
+        return Ok(None);
+    }
+
     // 2. Сервер.
     let Some(track) = fetch(&artist, &title, &album, duration_s)
         .await
         .map_err(|e| e.to_string())?
     else {
+        NOT_FOUND.lock().unwrap().insert(key);
         return Ok(None);
     };
     if track.instrumental == Some(true) {
@@ -99,8 +115,9 @@ pub async fn lyrics_get(
     Ok(Some(lyrics))
 }
 
-/// Шукає пісню на LRCLIB. Спершу точний запит `/get` (назва + виконавець +
-/// альбом + тривалість), якщо не знайдено — пошук `/search` за назвою і виконавцем.
+/// Шукає пісню на LRCLIB, пробуючи кілька варіантів «виконавець + назва»
+/// (див. `candidates`). Для кожного: спершу точний запит `/get` (з альбомом і
+/// тривалістю — лише для оригінальних даних), якщо не знайдено — пошук `/search`.
 async fn fetch(
     artist: &str,
     title: &str,
@@ -119,33 +136,108 @@ async fn fetch(
         .timeout(Duration::from_secs(10))
         .build()?;
 
-    let duration = duration_s.to_string();
-    let response = client
-        .get(format!("{API}/get"))
-        // query() сам екранує спецсимволи (пробіли, &, кирилицю) в URL.
-        .query(&[
-            ("artist_name", artist),
-            ("track_name", title),
-            ("album_name", album),
-            ("duration", duration.as_str()),
-        ])
-        .send()
-        .await?;
-    if response.status().is_success() {
-        // json::<T>() розбирає тіло відповіді в нашу структуру через serde.
-        return Ok(Some(response.json::<LrclibTrack>().await?));
+    // enumerate() дає пари (номер, елемент): перший варіант — оригінальні дані.
+    for (index, (artist, title)) in candidates(artist, title).into_iter().enumerate() {
+        if index == 0 {
+            let duration = duration_s.to_string();
+            let response = client
+                .get(format!("{API}/get"))
+                // query() сам екранує спецсимволи (пробіли, &, кирилицю) в URL.
+                .query(&[
+                    ("artist_name", artist.as_str()),
+                    ("track_name", title.as_str()),
+                    ("album_name", album),
+                    ("duration", duration.as_str()),
+                ])
+                .send()
+                .await?;
+            if response.status().is_success() {
+                // json::<T>() розбирає тіло відповіді в нашу структуру через serde.
+                return Ok(Some(response.json::<LrclibTrack>().await?));
+            }
+        }
+
+        // Точного збігу немає — шукаємо ширше за назвою і виконавцем.
+        let results: Vec<LrclibTrack> = client
+            .get(format!("{API}/search"))
+            .query(&[
+                ("artist_name", artist.as_str()),
+                ("track_name", title.as_str()),
+            ])
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        if let Some(track) = pick_best(results, duration_s) {
+            return Ok(Some(track));
+        }
+    }
+    Ok(None)
+}
+
+/// Варіанти «виконавець + назва» для пошуку, від найточнішого.
+///
+/// Навіщо: браузерні плеєри (SoundCloud, YouTube) часто передають Windows
+/// назву на кшталт "The Cure - Boys Dont Cry (Official Video)", а виконавцем
+/// ставлять того, хто завантажив трек. Тоді пробуємо ще:
+///   - назву без дужок і «feat.»: "The Cure - Boys Dont Cry";
+///   - розділити назву по « - »: виконавець "The Cure", назва "Boys Dont Cry".
+fn candidates(artist: &str, title: &str) -> Vec<(String, String)> {
+    let artist = artist.trim();
+    let title = title.trim();
+    let mut list = vec![(artist.to_string(), title.to_string())];
+
+    let cleaned = clean_title(title);
+    list.push((artist.to_string(), cleaned.clone()));
+
+    // Роздільники між виконавцем і назвою: дефіс, коротке й довге тире.
+    for separator in [" - ", " – ", " — "] {
+        if let Some((left, right)) = cleaned.split_once(separator) {
+            list.push((left.trim().to_string(), clean_title(right)));
+            break;
+        }
     }
 
-    // Точного збігу немає (часто через альбом чи тривалість) — шукаємо ширше.
-    let results: Vec<LrclibTrack> = client
-        .get(format!("{API}/search"))
-        .query(&[("artist_name", artist), ("track_name", title)])
-        .send()
-        .await?
-        .error_for_status()?
-        .json()
-        .await?;
-    Ok(pick_best(results, duration_s))
+    // Прибираємо порожні й повтори, зберігаючи порядок.
+    let mut unique: Vec<(String, String)> = Vec::new();
+    for pair in list {
+        if !pair.0.is_empty() && !pair.1.is_empty() && !unique.contains(&pair) {
+            unique.push(pair);
+        }
+    }
+    unique
+}
+
+/// Прибирає з назви «сміття»: усе в дужках ( ) і [ ] (Official Video,
+/// Prod. by…, Remastered) і хвіст «feat. / ft.» з іменами гостей.
+fn clean_title(title: &str) -> String {
+    let mut result = String::new();
+    // depth — наскільки глибоко ми всередині дужок (0 — поза ними).
+    let mut depth = 0;
+    for ch in title.chars() {
+        match ch {
+            '(' | '[' => depth += 1,
+            ')' | ']' => depth = (depth - 1).max(0),
+            _ if depth == 0 => result.push(ch),
+            _ => {}
+        }
+    }
+
+    let lower = result.to_lowercase();
+    for marker in [" feat. ", " feat ", " ft. ", " ft "] {
+        // find повертає позицію в байтах; to_lowercase для латиниці й кирилиці
+        // не змінює довжини, тож позиція підходить і для оригінального рядка.
+        if let Some(position) = lower.find(marker)
+            && result.is_char_boundary(position)
+        {
+            result.truncate(position);
+            break;
+        }
+    }
+
+    // Зайві пробіли всередині («A  B») і по краях.
+    result.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 /// З результатів пошуку обирає пісню із синхронізованим текстом і
@@ -224,17 +316,22 @@ fn parse_timestamp(tag: &str) -> Option<i64> {
 
 /// Шлях до файлу кешу для пісні або None, якщо папку кешу не знайдено.
 fn cache_path(app: &AppHandle, artist: &str, title: &str, duration_s: i64) -> Option<PathBuf> {
+    let file = format!("{}.json", cache_key(artist, title, duration_s));
+    let dir = app.path().app_cache_dir().ok()?.join("lyrics");
+    Some(dir.join(file))
+}
+
+/// Ключ пісні — хеш від виконавця, назви й тривалості.
+/// Хеш, а не сам текст: так в імені файлу немає заборонених символів (/ : ? …).
+/// {:016x} — 16 шістнадцяткових цифр із нулями попереду.
+fn cache_key(artist: &str, title: &str, duration_s: i64) -> String {
     let key = format!(
         "{}\u{1f}{}\u{1f}{}",
         artist.trim().to_lowercase(),
         title.trim().to_lowercase(),
         duration_s
     );
-    // Ім'я файлу — хеш ключа: так у ньому немає заборонених символів (/ : ? …).
-    // {:016x} — 16 шістнадцяткових цифр із нулями попереду.
-    let file = format!("{:016x}.json", fnv1a(key.as_bytes()));
-    let dir = app.path().app_cache_dir().ok()?.join("lyrics");
-    Some(dir.join(file))
+    format!("{:016x}", fnv1a(key.as_bytes()))
 }
 
 fn read_cache(path: &Path) -> Option<Lyrics> {
@@ -288,6 +385,32 @@ mod tests {
         assert_eq!(lines[1].text, "Перший");
         assert_eq!(lines[2].text, ""); // пауза
         assert_eq!(lines[3].text, "Приспів");
+    }
+
+    #[test]
+    fn splits_artist_from_title() {
+        // SoundCloud: виконавець — той, хто завантажив, а справжній — у назві
+        let list = candidates("IovanSIXX", "The Cure - Boys Dont Cry");
+        assert_eq!(
+            list[0],
+            ("IovanSIXX".into(), "The Cure - Boys Dont Cry".into())
+        );
+        assert!(list.contains(&("The Cure".into(), "Boys Dont Cry".into())));
+    }
+
+    #[test]
+    fn cleans_titles() {
+        assert_eq!(clean_title("Song (Official Video)"), "Song");
+        assert_eq!(clean_title("Song [Prod. by X] (Remastered 2011)"), "Song");
+        assert_eq!(clean_title("Track feat. Someone"), "Track");
+        assert_eq!(clean_title("Трек ft. Гість"), "Трек");
+        assert_eq!(clean_title("Lift Off"), "Lift Off"); // «ft» усередині слова не чіпаємо
+    }
+
+    #[test]
+    fn keeps_simple_titles_as_one_candidate() {
+        let list = candidates("MACAN", "Бенз");
+        assert_eq!(list, vec![("MACAN".to_string(), "Бенз".to_string())]);
     }
 
     #[test]
