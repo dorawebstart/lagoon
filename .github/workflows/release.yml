@@ -1,0 +1,51 @@
+name: Release
+
+# Запускається, коли пушимо тег версії: git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      # Потрібно, щоб створити GitHub Release і завантажити інсталятори
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Кеш Cargo
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Встановити npm-залежності
+        run: npm ci
+
+      # Збирає .msi і .exe (NSIS) і викладає їх у GitHub Release для цього тегу
+      - name: Зібрати і опублікувати
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Lagoon ${{ github.ref_name }}"
+          releaseBody: |
+            Dynamic Island для Windows / Dynamic Island for Windows.
+
+            **Встановлення:** завантаж `Lagoon_*_x64-setup.exe` (або `.msi`) нижче і запусти.
+            **Install:** download `Lagoon_*_x64-setup.exe` (or `.msi`) below and run it.
+
+            Windows може показати SmartScreen («невідомий видавець»), бо інсталятор не підписаний:
+            «Докладніше» → «Виконати все одно». / SmartScreen may warn because the installer is unsigned.
+          releaseDraft: false
+          prerelease: false

@@ -2,7 +2,7 @@
 
 > 🇺🇦 [Українська](#українська) · 🇬🇧 [English](#english)
 
-> ⚠️ **Стан: ранній розвиток**, інсталятора ще немає — можна зібрати з коду. / **Status: early development**, no installer yet — build from source.
+> **v0.1** — перша версія (MVP). / First release (MVP).
 
 ---
 
@@ -19,11 +19,13 @@
 
 ### Скриншот
 
-_З'явиться після першої робочої версії._
+![Lagoon: згорнутий острів з музикою, плеєр і запит дозволу від Claude Code](docs/screenshot.png)
 
 ### Встановлення
 
-Готові інсталятори (`.msi` / `.exe`) з'являться на сторінці [Releases](https://github.com/dorawebstart/lagoon/releases) починаючи з `v0.1.0`.
+1. Завантаж `Lagoon_*_x64-setup.exe` (або `.msi`) зі сторінки [Releases](https://github.com/dorawebstart/lagoon/releases/latest).
+2. Запусти. Інсталятор не підписаний, тож Windows SmartScreen може попередити: «Докладніше» → «Виконати все одно».
+3. Острів з'явиться вгорі екрана, іконка — у треї. Автозапуск вмикається в налаштуваннях.
 
 ### Збірка з коду
 
@@ -93,11 +95,13 @@ Built with **Tauri 2** (Rust) + HTML/CSS/JavaScript.
 
 ### Screenshot
 
-_Coming with the first working version._
+![Lagoon: collapsed island with music, player and a Claude Code permission request](docs/screenshot.png)
 
 ### Install
 
-Installers (`.msi` / `.exe`) will be published on the [Releases](https://github.com/dorawebstart/lagoon/releases) page starting with `v0.1.0`.
+1. Download `Lagoon_*_x64-setup.exe` (or `.msi`) from [Releases](https://github.com/dorawebstart/lagoon/releases/latest).
+2. Run it. The installer is unsigned, so SmartScreen may warn: "More info" → "Run anyway".
+3. The island appears at the top of the screen, the icon in the tray. Enable autostart in Settings.
 
 ### Build from source
 

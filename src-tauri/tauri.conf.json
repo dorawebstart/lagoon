@@ -26,18 +26,8 @@
         "skipTaskbar": true,
         "focus": false,
         "focusable": false,
-        "visible": false
-      },
-      {
-        "label": "settings",
-        "title": "Lagoon",
-        "url": "settings.html",
-        "width": 440,
-        "height": 640,
-        "resizable": false,
-        "maximizable": false,
-        "center": true,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection"
       }
     ],
     "security": {
@@ -46,7 +36,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["msi", "nsis"],
+    "publisher": "dorawebstart",
+    "copyright": "© 2026 dorawebstart, MIT License",
+    "category": "Utility",
+    "shortDescription": "Dynamic Island для Windows",
+    "longDescription": "Lagoon — пігулка вгорі екрана з годинником, музичним плеєром і статусом Claude Code.",
+    "homepage": "https://github.com/dorawebstart/lagoon",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

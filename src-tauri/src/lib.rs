@@ -12,13 +12,15 @@ mod window;
 // `use` імпортує трейти. Трейт — це набір методів, які тип «вміє»
 // (схоже на interface у PHP). Manager додає застосунку get_webview_window,
 // Listener — метод listen. Без імпорту ці методи «не видно».
-use tauri::{Listener, Manager, WindowEvent};
+use tauri::{Listener, Manager};
 
 /// Точка запуску застосунку. `pub` означає, що функцію видно поза цим файлом:
 /// її викликає main.rs.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Автозапуск разом з Windows (запис у реєстрі: HKCU, розділ Run)
+        .plugin(tauri_plugin_autostart::Builder::new().build())
         // Плагін, що зберігає налаштування у JSON-файлі
         .plugin(tauri_plugin_store::Builder::new().build())
         // manage — реєструє спільний стан, доступний з команд і потоків
@@ -32,16 +34,6 @@ pub fn run() {
             agent::agent_info,
             agent::agent_respond
         ])
-        // Хрестик у вікні налаштувань лише ховає його, а не знищує:
-        // так наступне відкриття миттєве, а застосунок не завершується.
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event
-                && window.label() == window::SETTINGS_LABEL
-            {
-                api.prevent_close();
-                let _ = window.hide();
-            }
-        })
         // setup виконується один раз після старту, коли вікна вже створено.
         // `|app| { ... }` — замикання (closure), аналог стрілкової функції в JS.
         .setup(|app| {
