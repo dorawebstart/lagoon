@@ -9,6 +9,8 @@ const CHANGED_EVENT = "settings:changed";
 export const DEFAULTS = {
   language: "uk",
   islandColor: "#000000",
+  /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
+  showLyrics: true,
 };
 
 let storePromise = null;

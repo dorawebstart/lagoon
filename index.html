@@ -9,6 +9,13 @@
   </head>
 
   <body>
+    <!-- Спільний контейнер: основний острів по центру, текст пісні — ліворуч від нього -->
+    <div class="stage" id="stage">
+    <!-- Текст пісні: три рядки, «прозорий для миші» (кліки проходять крізь нього) -->
+    <div class="lyrics" id="lyrics" aria-hidden="true">
+      <div class="lyrics__track" id="lyrics-track"></div>
+    </div>
+
     <div class="island" id="island">
       <!-- Згорнутий стан: годинник; коли грає музика — ще обкладинка і еквалайзер -->
       <div class="island__compact">
@@ -75,6 +82,13 @@
             <button class="ctrl" data-action="next" data-i18n-label="player.next">
               <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z" /></svg>
             </button>
+            <!-- Показати / сховати текст пісні (видно, лише якщо текст знайдено) -->
+            <button class="ctrl ctrl--lyrics" id="lyrics-toggle" aria-pressed="true" data-i18n-label="player.lyrics">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z" />
+                <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+            </button>
           </div>
 
           <!-- Гучність програми-плеєра (або системи, якщо програму не знайдено) -->
@@ -89,6 +103,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
   </body>
 </html>

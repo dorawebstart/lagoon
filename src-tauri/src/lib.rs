@@ -5,6 +5,7 @@
 // Без цих рядків файли просто ігнорувалися б.
 mod agent;
 mod audio;
+mod lyrics;
 mod media;
 mod settings;
 mod tray;
@@ -35,6 +36,7 @@ pub fn run() {
             media::media_seek,
             audio::audio_volume,
             audio::audio_set_volume,
+            lyrics::lyrics_get,
             agent::agent_info,
             agent::agent_respond
         ])

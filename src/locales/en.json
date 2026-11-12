@@ -32,6 +32,7 @@
     "next": "Next track",
     "volume": "Volume",
     "seek": "Seek",
+    "lyrics": "Lyrics",
     "system": "System"
   },
   "colors": {

@@ -18,6 +18,12 @@ body {
 
 /* ───────── Острів ───────── */
 
+/* Спільний контейнер: за шириною дорівнює основному острову і стоїть по центру,
+   тож острівець з текстом можна прив'язати до його лівого краю */
+.stage {
+  position: relative;
+}
+
 .island {
   --island-color: #000;
   /* Крива в стилі iOS: швидкий старт і дуже м'яке гальмування */
@@ -437,6 +443,85 @@ body {
 .volume:hover::-webkit-slider-thumb,
 .volume:active::-webkit-slider-thumb {
   transform: scale(1.2);
+}
+
+/* ───────── Текст пісні ───────── */
+
+.lyrics {
+  --island-color: #000;
+  position: absolute;
+  top: 6px;
+  right: calc(100% + 10px); /* ліворуч від основного острова з проміжком 10 px */
+  width: 280px;
+  height: 66px; /* 3 рядки × 20 px + відступи */
+  box-sizing: border-box;
+  padding: 3px 16px;
+  border-radius: 22px;
+  background: var(--island-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  /* Лише показує текст: кліки проходять крізь нього до програм під ним */
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.92);
+  transform-origin: right center;
+  transition:
+    opacity 220ms ease,
+    transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.stage.show-lyrics .lyrics {
+  opacity: 1;
+  transform: none;
+}
+
+/* «Стрічка» з усіма рядками; JS зсуває її так, щоб поточний був посередині */
+.lyrics__track {
+  transition: transform 380ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.lyrics__line {
+  height: 20px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 20px;
+  color: rgba(255, 255, 255, 0.42); /* проспіваний і наступний — сіріші */
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: color 300ms ease;
+}
+
+.lyrics__line.is-current {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Кнопка 🎤 праворуч у ряду кнопок плеєра; з'являється, лише якщо текст знайдено */
+.player__controls {
+  position: relative;
+}
+
+.ctrl.ctrl--lyrics {
+  display: none;
+  position: absolute;
+  right: 0;
+  width: 28px;
+  height: 28px;
+}
+
+.stage.has-lyrics .ctrl.ctrl--lyrics {
+  display: grid;
+}
+
+.ctrl--lyrics svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Текст сховано — кнопка тьмяніша */
+.ctrl--lyrics[aria-pressed="false"] {
+  opacity: 0.45;
 }
 
 .island.is-playing .icon-play,
