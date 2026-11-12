@@ -11,6 +11,11 @@ export const DEFAULTS = {
   islandColor: "#000000",
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
   showLyrics: true,
+  /** Позиція острова: край ("top" | "bottom"), прив'язка ("left" | "center" | "right")
+      і зсув точки прив'язки у частках ширини екрана. */
+  islandEdge: "top",
+  islandAlign: "center",
+  islandOffset: 0,
 };
 
 let storePromise = null;

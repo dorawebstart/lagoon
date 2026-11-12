@@ -7,6 +7,7 @@ mod agent;
 mod audio;
 mod lyrics;
 mod media;
+mod position;
 mod settings;
 mod tray;
 mod window;
@@ -28,6 +29,7 @@ pub fn run() {
         // manage — реєструє спільний стан, доступний з команд і потоків
         .manage(window::HitRegion::default())
         .manage(media::MediaStore::default())
+        .manage(position::DragState::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -37,6 +39,8 @@ pub fn run() {
             audio::audio_volume,
             audio::audio_set_volume,
             lyrics::lyrics_get,
+            position::island_placement,
+            position::island_drag_start,
             agent::agent_info,
             agent::agent_respond
         ])
@@ -57,7 +61,8 @@ pub fn run() {
             // застосунок (AppHandle) і сховище налаштувань з токеном.
             app.manage(agent::start(&handle));
 
-            // Коли в налаштуваннях змінили мову — перекладаємо меню трею.
+            // Коли в налаштуваннях змінили мову — перекладаємо меню трею,
+            // а позицію острова (верх/низ, «Скинути позицію») — переставляємо вікно.
             // `move` переносить копію `handle` всередину замикання,
             // бо воно житиме довше, ніж функція setup.
             let listener_handle = handle.clone();
@@ -65,18 +70,35 @@ pub fn run() {
                 // payload() — JSON-рядок; serde_json перетворює його на нашу структуру.
                 // `if let A && let B` — обидві умови мають «збігтися»: JSON розібрався (Ok)
                 // і в ньому є мова (Some). Інакше просто нічого не робимо.
-                if let Ok(changed) =
+                let Ok(changed) =
                     serde_json::from_str::<settings::SettingsChanged>(event.payload())
-                    && let Some(language) = changed.language
-                {
+                else {
+                    return;
+                };
+                if let Some(language) = changed.language {
                     let _ = tray::set_language(&listener_handle, &language);
+                }
+                if let (Some(edge), Some(offset), Some(island)) = (
+                    changed.island_edge,
+                    changed.island_offset,
+                    listener_handle.get_webview_window("main"),
+                ) {
+                    // Старі налаштування без islandAlign — вважаємо, що по центру.
+                    let align = changed.island_align.unwrap_or_default();
+                    let target = position::IslandPosition {
+                        edge,
+                        align,
+                        offset,
+                    };
+                    let _ = position::place(&island, target);
                 }
             });
 
             // Шукаємо вікно за label з tauri.conf.json. Повертає Option,
             // бо вікна з такою назвою може й не бути.
             if let Some(island) = app.get_webview_window("main") {
-                window::place_top_center(&island)?;
+                // Збережена позиція (вгорі/внизу, зсув) або верх по центру.
+                position::place(&island, position::saved(&handle))?;
                 // Вікно створене невидимим (visible: false), щоб не «стрибало»:
                 // спершу ставимо на місце, потім показуємо.
                 island.show()?;

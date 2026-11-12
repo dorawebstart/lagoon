@@ -445,6 +445,54 @@ body {
   transform: scale(1.2);
 }
 
+/* ───────── Позиція: внизу екрана і перетягування ───────── */
+
+/* Острів унизу: вікно прив'язане до низу робочої області, а острів —
+   до низу вікна, тож розкривається він угору */
+body.edge-bottom {
+  align-items: flex-end;
+}
+
+body.edge-bottom .island {
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+body.edge-bottom .lyrics {
+  top: auto;
+  bottom: 6px;
+}
+
+/* Острів прив'язаний до лівого / правого краю екрана: стоїть за 10 px від краю
+   вікна і розкривається всередину екрана (EDGE_GAP у position.rs) */
+body.align-left {
+  justify-content: flex-start;
+}
+
+body.align-left .stage {
+  margin-left: 10px;
+}
+
+body.align-right {
+  justify-content: flex-end;
+}
+
+body.align-right .stage {
+  margin-right: 10px;
+}
+
+/* Острів біля лівого краю екрана — текст пісні праворуч від нього */
+body.lyrics-right .lyrics {
+  right: auto;
+  left: calc(100% + 10px);
+  transform-origin: left center;
+}
+
+body.is-dragging,
+body.is-dragging * {
+  cursor: grabbing !important;
+}
+
 /* ───────── Текст пісні ───────── */
 
 .lyrics {

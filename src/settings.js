@@ -8,6 +8,7 @@ import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 
 const languageInputs = document.querySelectorAll('input[name="language"]');
 const colorInputs = document.querySelectorAll('input[name="color"]');
+const edgeInputs = document.querySelectorAll('input[name="edge"]');
 const customColor = document.querySelector("#custom-color");
 const customSwatch = customColor.closest(".swatch");
 const status = document.querySelector("#status");
@@ -106,8 +107,30 @@ async function init() {
   customColor.addEventListener("input", () => showColor(customColor.value));
   customColor.addEventListener("change", () => save({ islandColor: customColor.value }));
 
+  setupPosition(settings);
   await setupAutostart();
   await setupClaudeSection();
+}
+
+/**
+ * Позиція острова: вгорі / внизу і «Скинути позицію».
+ * Саме вікно переставляє Rust, коли отримує подію settings:changed.
+ */
+function setupPosition(settings) {
+  const showEdge = (edge) => {
+    for (const input of edgeInputs) input.checked = input.value === edge;
+  };
+  showEdge(settings.islandEdge);
+
+  for (const input of edgeInputs) {
+    // Зсув лишаємо той самий: острів перескакує на інший край у тому ж місці
+    input.addEventListener("change", () => save({ islandEdge: input.value }));
+  }
+
+  document.querySelector("#reset-position").addEventListener("click", () => {
+    showEdge("top");
+    save({ islandEdge: "top", islandAlign: "center", islandOffset: 0 });
+  });
 }
 
 /**

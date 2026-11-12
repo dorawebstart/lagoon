@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 /**
  * Стежить за розміром елемента і щоразу надсилає його прямокутник у Rust.
- * Пізніше, коли пігулка розкриватиметься (крок 4), зона оновиться сама.
+ * Зона оновлюється, коли пігулка змінює розмір або переїжджає у вікні.
  */
 export function trackHitRegion(element) {
   const send = () => {
@@ -15,5 +15,13 @@ export function trackHitRegion(element) {
   };
 
   new ResizeObserver(send).observe(element);
+  // ResizeObserver бачить лише зміну розміру. А коли острів переїжджає всередині
+  // вікна (вниз, до лівого чи правого краю), розмір той самий — змінюються лише
+  // класи на <body> (edge-bottom, align-left…, див. drag.js). Стежимо за ними
+  // і надсилаємо прямокутник на наступному кадрі, коли CSS уже застосовано.
+  new MutationObserver(() => requestAnimationFrame(send)).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   send();
 }
