@@ -3,6 +3,7 @@
 
 // `mod назва;` каже компілятору: «є модуль, його код — у файлі назва.rs».
 // Без цих рядків файли просто ігнорувалися б.
+mod media;
 mod settings;
 mod tray;
 mod window;
@@ -21,8 +22,12 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         // manage — реєструє спільний стан, доступний з команд і потоків
         .manage(window::HitRegion::default())
+        .manage(media::MediaStore::default())
         // Команди, які можна викликати з JS через invoke
-        .invoke_handler(tauri::generate_handler![window::set_hit_region])
+        .invoke_handler(tauri::generate_handler![
+            window::set_hit_region,
+            media::media_current
+        ])
         // Хрестик у вікні налаштувань лише ховає його, а не знищує:
         // так наступне відкриття миттєве, а застосунок не завершується.
         .on_window_event(|window, event| {
@@ -41,6 +46,9 @@ pub fn run() {
 
             // Трей мовою, яку користувач обрав раніше
             tray::create(&handle, &settings::saved_language(&handle))?;
+
+            // Фоновий потік, що стежить за музикою (Spotify, YouTube…)
+            media::start(handle.clone());
 
             // Коли в налаштуваннях змінили мову — перекладаємо меню трею.
             // `move` переносить копію `handle` всередину замикання,
