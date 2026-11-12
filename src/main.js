@@ -6,6 +6,7 @@ import { setupVolume } from "./components/volume.js";
 import { setupAgent } from "./components/agent.js";
 import { setupLyrics } from "./components/lyrics.js";
 import { setupDrag } from "./components/drag.js";
+import { setupAccent } from "./components/accent.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -18,6 +19,7 @@ setupPlayer(island);
 setupVolume(island);
 const agent = setupAgent(island, expander);
 setupDrag(island, expander);
+const accent = setupAccent();
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -29,6 +31,8 @@ function applySettings(settings) {
   setLanguage(settings.language);
   setClockLocale(getLocale());
   applyTheme(settings.theme, settings.islandColor);
+  accent.setMode(settings.accentMode, settings.accentColor);
+  applyTextColor(settings.textColor);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
 }
@@ -45,6 +49,13 @@ function applyTheme(theme, color) {
   } else {
     document.documentElement.style.removeProperty("--island-bg");
   }
+}
+
+/** Свій колір тексту — у --island-fg на :root; порожній рядок — стандартний (білий). */
+function applyTextColor(color) {
+  const root = document.documentElement.style;
+  if (color) root.setProperty("--island-fg", color);
+  else root.removeProperty("--island-fg");
 }
 
 loadSettings().then(applySettings);

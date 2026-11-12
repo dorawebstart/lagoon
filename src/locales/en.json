@@ -20,7 +20,13 @@
     "positionReset": "Reset position",
     "positionHint": "Drag the island with the mouse along the edge or to the other edge — it snaps to the nearest one.",
     "saved": "Saved",
-    "theme": "Theme"
+    "theme": "Theme",
+    "palettes": "Palettes",
+    "accent": "Accent",
+    "accentPick": "Accent color",
+    "accentHint": "Equalizer, progress, volume and the current lyrics line",
+    "textColor": "Text color",
+    "textReset": "Default"
   },
   "agent": {
     "working": "Working…",
@@ -49,5 +55,16 @@
     "graphite": "Graphite",
     "glass": "Glass",
     "custom": "Custom"
+  },
+  "accent": {
+    "cover": "From cover",
+    "custom": "Custom",
+    "theme": "Default"
+  },
+  "palettes": {
+    "ocean": "Ocean",
+    "sunset": "Sunset",
+    "forest": "Forest",
+    "lavender": "Lavender"
   }
 }

@@ -23,20 +23,24 @@ body {
 :root {
   --island-bg: #000; /* фон пігулки */
   --island-fg: #fff; /* основний текст і значки */
-  --island-muted: rgba(255, 255, 255, 0.58); /* другорядний текст: виконавець, час */
-  --island-dim: rgba(255, 255, 255, 0.42); /* сіріші рядки тексту пісні */
-  --island-track: rgba(255, 255, 255, 0.18); /* доріжки прогресу й гучності */
-  --island-hover: rgba(255, 255, 255, 0.12); /* підсвітка кнопок */
-  --island-faint: rgba(255, 255, 255, 0.08); /* ледь помітні підкладки */
+  /* Решта відтінків — напівпрозорий колір тексту (color-mix), тож свій колір
+     тексту (кремовий, блакитний…) змінює і їх */
+  --island-muted: color-mix(in srgb, var(--island-fg) 58%, transparent); /* виконавець, час */
+  --island-dim: color-mix(in srgb, var(--island-fg) 42%, transparent); /* сіріші рядки тексту пісні */
+  --island-track: color-mix(in srgb, var(--island-fg) 18%, transparent); /* доріжки прогресу й гучності */
+  --island-hover: color-mix(in srgb, var(--island-fg) 12%, transparent); /* підсвітка кнопок */
+  --island-faint: color-mix(in srgb, var(--island-fg) 8%, transparent); /* ледь помітні підкладки */
   --island-rim: transparent; /* тонка рамка (для «Скла») */
   --island-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--island-rim);
-  --accent: #7ee787; /* еквалайзер (у кроці 17 — колір з обкладинки) */
+  --accent: #7ee787; /* еквалайзер */
+  /* --user-accent — колір з обкладинки або свій (ставить accent.js). Поки його
+     немає, var(--user-accent, запасний) бере звичайний колір теми. */
 }
 
 /* Графіт: темно-сірий замість чорного */
 body[data-theme="graphite"] {
   --island-bg: #2c2c2e;
-  --island-muted: rgba(255, 255, 255, 0.62);
+  --island-muted: color-mix(in srgb, var(--island-fg) 62%, transparent);
 }
 
 /* Скло: напівпрозорий темний фон і тонка світла рамка.
@@ -184,8 +188,9 @@ body[data-theme="glass"] {
   width: 3px;
   height: 100%;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--user-accent, var(--accent));
   transform-origin: center;
+  transition: background-color 400ms ease;
   animation: eq-bounce 900ms ease-in-out infinite;
 }
 
@@ -342,9 +347,10 @@ body[data-theme="glass"] {
   width: 100%;
   height: 100%;
   border-radius: 2px;
-  background: var(--island-fg);
+  background: var(--user-accent, var(--island-fg));
   transform: scaleX(0);
   transform-origin: left;
+  transition: background-color 400ms ease;
 }
 
 /* Можна перемотувати: при наведенні й перетягуванні смужка товщає */
@@ -455,7 +461,7 @@ body[data-theme="glass"] {
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    var(--island-fg) var(--fill),
+    var(--user-accent, var(--island-fg)) var(--fill),
     var(--island-track) var(--fill)
   );
 }
@@ -465,7 +471,7 @@ body[data-theme="glass"] {
   height: 12px;
   margin-top: -4px; /* центруємо кружечок на доріжці висотою 4 px */
   border-radius: 50%;
-  background: var(--island-fg);
+  background: var(--user-accent, var(--island-fg));
   appearance: none;
   transition: transform 120ms ease;
 }
@@ -571,7 +577,7 @@ body.is-dragging * {
 .lyrics__line.is-current {
   font-size: 13px;
   font-weight: 600;
-  color: var(--island-fg);
+  color: var(--user-accent, var(--island-fg));
 }
 
 /* Кнопка 🎤 праворуч у ряду кнопок плеєра; з'являється, лише якщо текст знайдено */
