@@ -32,7 +32,8 @@
     "sizeLyricsWidth": "Lyrics width",
     "sizeLyricsFont": "Lyrics font",
     "sizeReset": "Reset sizes",
-    "wave": "Wave to the music"
+    "wave": "Wave to the music",
+    "visibilityHint": "Hide / show the island: Ctrl+Alt+L or the tray menu. It can't appear over games in exclusive fullscreen — borderless window mode works."
   },
   "agent": {
     "working": "Working…",

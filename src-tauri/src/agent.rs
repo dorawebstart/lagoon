@@ -245,6 +245,8 @@ async fn wait_for_decision(server: Arc<AgentServer>, ask: PermissionAsk) -> Resp
 
     #[cfg(debug_assertions)]
     eprintln!("agent: дозвіл? {} {} — {}", ask.id, ask.tool, ask.detail);
+    // Острів схований (Ctrl+Alt+L) — показуємо: запит дозволу важливіший
+    crate::visibility::show(&server.app);
     let _ = server.app.emit(PERMISSION_EVENT, ask);
 
     // timeout обгортає очікування: або рішення прийде, або мине PERMISSION_TIMEOUT.

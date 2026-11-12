@@ -1,11 +1,11 @@
 // tray.rs — іконка в треї (біля годинника Windows) з меню:
-// «Налаштування», «Перезапустити», «Вийти».
+// «Сховати / Показати острів», «Налаштування», «Перезапустити», «Вийти».
 
 use tauri::menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Wry};
 
-use crate::window;
+use crate::{visibility, window};
 
 /// Ідентифікатор іконки — за ним потім знаходимо її, щоб змінити меню.
 const TRAY_ID: &str = "lagoon-tray";
@@ -15,6 +15,8 @@ const TRAY_ID: &str = "lagoon-tray";
 /// `&'static str` — посилання на рядок, який живе весь час роботи програми
 /// (він «вшитий» у .exe). `'static` — це lifetime, «час життя» посилання.
 struct Labels {
+    hide: &'static str,
+    show: &'static str,
     settings: &'static str,
     restart: &'static str,
     quit: &'static str,
@@ -26,11 +28,15 @@ fn labels(language: &str) -> Labels {
     // match по рядку: як switch у JS. `_` — «усе інше».
     match language {
         "en" => Labels {
+            hide: "Hide island (Ctrl+Alt+L)",
+            show: "Show island (Ctrl+Alt+L)",
             settings: "Settings",
             restart: "Restart",
             quit: "Quit",
         },
         _ => Labels {
+            hide: "Сховати острів (Ctrl+Alt+L)",
+            show: "Показати острів (Ctrl+Alt+L)",
             settings: "Налаштування",
             restart: "Перезапустити",
             quit: "Вийти",
@@ -47,13 +53,20 @@ fn build_menu(app: &AppHandle, language: &str) -> tauri::Result<Menu<Wry>> {
 
     // Перший аргумент — id пункту: за ним розпізнаємо, що натиснули.
     // true — пункт активний; None — без гарячої клавіші.
+    // Текст першого пункту залежить від того, чи видно острів зараз
+    let toggle_text = if visibility::is_visible(app) {
+        text.hide
+    } else {
+        text.show
+    };
+    let toggle = MenuItem::with_id(app, "toggle", toggle_text, true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", text.settings, true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
     let restart = MenuItem::with_id(app, "restart", text.restart, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", text.quit, true, None::<&str>)?;
 
     // &[...] — позичений масив посилань на пункти меню.
-    Menu::with_items(app, &[&settings, &separator, &restart, &quit])
+    Menu::with_items(app, &[&toggle, &settings, &separator, &restart, &quit])
 }
 
 /// Створює іконку в треї. Викликається один раз під час старту.
@@ -90,6 +103,7 @@ pub fn set_language(app: &AppHandle, language: &str) -> tauri::Result<()> {
 fn on_menu_event(app: &AppHandle, event: MenuEvent) {
     // event.id() — той самий id, що ми дали в MenuItem::with_id.
     match event.id().as_ref() {
+        "toggle" => visibility::toggle(app),
         "settings" => window::open_settings(app),
         "restart" => app.restart(),
         "quit" => app.exit(0),

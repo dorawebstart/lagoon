@@ -11,12 +11,14 @@ mod meter;
 mod position;
 mod settings;
 mod tray;
+mod visibility;
 mod window;
 
 // `use` імпортує трейти. Трейт — це набір методів, які тип «вміє»
 // (схоже на interface у PHP). Manager додає застосунку get_webview_window,
 // Listener — метод listen. Без імпорту ці методи «не видно».
 use tauri::{Listener, Manager};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 /// Точка запуску застосунку. `pub` означає, що функцію видно поза цим файлом:
 /// її викликає main.rs.
@@ -33,6 +35,7 @@ pub fn run() {
         .manage(position::DragState::default())
         .manage(position::LayoutState::default())
         .manage(meter::WaveEnabled::default())
+        .manage(visibility::IslandVisible::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -53,6 +56,24 @@ pub fn run() {
         .setup(|app| {
             // handle() — «ручка» застосунку, яку можна копіювати і передавати.
             let handle = app.handle().clone();
+
+            // Гаряча клавіша Ctrl+Alt+L — сховати / показати острів.
+            // with_handler: замикання викликається на кожне натискання і
+            // відпускання; реагуємо лише на натискання.
+            handle.plugin(
+                tauri_plugin_global_shortcut::Builder::new()
+                    .with_handler(|app, _shortcut, event| {
+                        if event.state == ShortcutState::Pressed {
+                            visibility::toggle(app);
+                        }
+                    })
+                    .build(),
+            )?;
+            // Комбінацію могла вже зайняти інша програма — тоді просто пишемо
+            // в лог: острів однаково можна сховати з меню трею.
+            if let Err(error) = handle.global_shortcut().register(visibility::SHORTCUT) {
+                eprintln!("гаряча клавіша {}: {error}", visibility::SHORTCUT);
+            }
 
             // Трей мовою, яку користувач обрав раніше
             tray::create(&handle, &settings::saved_language(&handle))?;

@@ -19,6 +19,7 @@ use windows::core::Result as WinResult;
 
 use crate::audio::{ComGuard, app_sessions, default_device};
 use crate::media::MediaStore;
+use crate::visibility;
 
 /// Подія для фронтенду: рівень звуку 0.0–1.0.
 pub const LEVEL_EVENT: &str = "audio:level";
@@ -62,7 +63,7 @@ fn run(app: &AppHandle) {
         let enabled = app.state::<WaveEnabled>().0.load(Ordering::Relaxed);
         let media = app.state::<MediaStore>();
 
-        if !enabled || !media.is_playing() {
+        if !enabled || !media.is_playing() || !visibility::is_visible(app) {
             // Щойно перестали — один раз кажемо фронтенду «тиша».
             if last_sent.is_some_and(|level| level > 0.0) {
                 let _ = app.emit(LEVEL_EVENT, 0.0_f32);
