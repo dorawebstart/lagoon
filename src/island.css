@@ -92,6 +92,20 @@ body {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Тимчасово (крок 6): що грає — одним рядком */
+.island__now-playing {
+  max-width: 320px;
+  margin-top: 6px;
+  overflow: hidden;
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.island__now-playing[hidden] {
+  display: none;
+}
+
 /* Якщо в Windows вимкнено анімації — не анімуємо */
 @media (prefers-reduced-motion: reduce) {
   .island,
