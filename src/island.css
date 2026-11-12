@@ -33,6 +33,12 @@ body {
   --island-rim: transparent; /* тонка рамка (для «Скла») */
   --island-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--island-rim);
   --accent: #7ee787; /* еквалайзер */
+
+  /* Розміри (налаштування «Розмір», ставить main.js) */
+  --scale: 1; /* масштаб острова: 0.9–1.3 */
+  --lyrics-width: 280px; /* ширина острівця з текстом пісні */
+  --lyrics-font: 12px; /* шрифт тексту пісні (поточний рядок +1 px) */
+  --lyrics-line: 20px; /* висота рядка тексту пісні */
   /* --user-accent — колір з обкладинки або свій (ставить accent.js). Поки його
      немає, var(--user-accent, запасний) бере звичайний колір теми. */
 }
@@ -57,6 +63,27 @@ body[data-theme="glass"] {
    тож острівець з текстом можна прив'язати до його лівого краю */
 .stage {
   position: relative;
+  /* Масштаб острова: збільшуємо весь «стейдж» — і острів, і текст пісні.
+     transform не зсуває сусідів і враховується в getBoundingClientRect,
+     тож зона click-through (hit-region.js) рахується правильно.
+     Точка, від якої росте: вгорі — від верхнього краю, внизу — від нижнього,
+     біля бокового краю — від нього (щоб острів не «з'їжджав» з місця). */
+  --origin-x: center;
+  --origin-y: top;
+  transform: scale(var(--scale));
+  transform-origin: var(--origin-x) var(--origin-y);
+}
+
+body.edge-bottom .stage {
+  --origin-y: bottom;
+}
+
+body.align-left .stage {
+  --origin-x: left;
+}
+
+body.align-right .stage {
+  --origin-x: right;
 }
 
 .island {
@@ -535,8 +562,8 @@ body.is-dragging * {
   position: absolute;
   top: 6px;
   right: calc(100% + 10px); /* ліворуч від основного острова з проміжком 10 px */
-  width: 280px;
-  height: 66px; /* 3 рядки × 20 px + відступи */
+  width: var(--lyrics-width);
+  height: calc(var(--lyrics-line) * 3 + 6px); /* 3 рядки + відступи */
   box-sizing: border-box;
   padding: 3px 16px;
   border-radius: 22px;
@@ -564,10 +591,10 @@ body.is-dragging * {
 }
 
 .lyrics__line {
-  height: 20px;
+  height: var(--lyrics-line);
   overflow: hidden;
-  font-size: 12px;
-  line-height: 20px;
+  font-size: var(--lyrics-font);
+  line-height: var(--lyrics-line);
   color: var(--island-dim); /* проспіваний і наступний — сіріші */
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -575,7 +602,7 @@ body.is-dragging * {
 }
 
 .lyrics__line.is-current {
-  font-size: 13px;
+  font-size: calc(var(--lyrics-font) + 1px);
   font-weight: 600;
   color: var(--user-accent, var(--island-fg));
 }

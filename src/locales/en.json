@@ -26,7 +26,12 @@
     "accentPick": "Accent color",
     "accentHint": "Equalizer, progress, volume and the current lyrics line",
     "textColor": "Text color",
-    "textReset": "Default"
+    "textReset": "Default",
+    "size": "Size",
+    "sizeScale": "Island scale",
+    "sizeLyricsWidth": "Lyrics width",
+    "sizeLyricsFont": "Lyrics font",
+    "sizeReset": "Reset sizes"
   },
   "agent": {
     "working": "Working…",

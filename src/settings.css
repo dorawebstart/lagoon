@@ -366,3 +366,24 @@ code {
   border: 1px solid var(--border);
   border-radius: 999px;
 }
+
+/* ───────── Розмір ───────── */
+
+/* Рядок: назва — повзунок — значення */
+.range-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 52px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.range-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.range-row output {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

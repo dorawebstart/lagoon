@@ -30,6 +30,7 @@ pub fn run() {
         .manage(window::HitRegion::default())
         .manage(media::MediaStore::default())
         .manage(position::DragState::default())
+        .manage(position::LayoutState::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -78,18 +79,24 @@ pub fn run() {
                 if let Some(language) = changed.language {
                     let _ = tray::set_language(&listener_handle, &language);
                 }
-                if let (Some(edge), Some(offset), Some(island)) = (
-                    changed.island_edge,
-                    changed.island_offset,
-                    listener_handle.get_webview_window("main"),
-                ) {
-                    // Старі налаштування без islandAlign — вважаємо, що по центру.
-                    let align = changed.island_align.unwrap_or_default();
-                    let target = position::IslandPosition {
+                let Some(island) = listener_handle.get_webview_window("main") else {
+                    return;
+                };
+                // Позиція з події (або збережена, якщо в події її немає).
+                // Старі налаштування без islandAlign — вважаємо, що по центру.
+                let target = match (changed.island_edge, changed.island_offset) {
+                    (Some(edge), Some(offset)) => position::IslandPosition {
                         edge,
-                        align,
+                        align: changed.island_align.unwrap_or_default(),
                         offset,
-                    };
+                    },
+                    _ => position::saved(&listener_handle),
+                };
+                // Змінилися розміри — міняємо розмір вікна; інакше лише позицію.
+                let layout = position::layout_from(changed.island_scale, changed.lyrics_width);
+                if position::layout_changed(&island, layout) {
+                    let _ = position::apply_layout(&island, layout, target);
+                } else {
                     let _ = position::place(&island, target);
                 }
             });
@@ -98,7 +105,11 @@ pub fn run() {
             // бо вікна з такою назвою може й не бути.
             if let Some(island) = app.get_webview_window("main") {
                 // Збережена позиція (вгорі/внизу, зсув) або верх по центру.
-                position::place(&island, position::saved(&handle))?;
+                position::apply_layout(
+                    &island,
+                    position::saved_layout(&handle),
+                    position::saved(&handle),
+                )?;
                 // Вікно створене невидимим (visible: false), щоб не «стрибало»:
                 // спершу ставимо на місце, потім показуємо.
                 island.show()?;

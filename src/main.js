@@ -33,6 +33,7 @@ function applySettings(settings) {
   applyTheme(settings.theme, settings.islandColor);
   accent.setMode(settings.accentMode, settings.accentColor);
   applyTextColor(settings.textColor);
+  applySizes(settings);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
 }
@@ -56,6 +57,20 @@ function applyTextColor(color) {
   const root = document.documentElement.style;
   if (color) root.setProperty("--island-fg", color);
   else root.removeProperty("--island-fg");
+}
+
+/**
+ * Розміри: масштаб острова, ширина й шрифт тексту пісні — CSS-змінні на :root.
+ * Розмір самого вікна під них підганяє Rust (position.rs, Layout).
+ */
+function applySizes(settings) {
+  const root = document.documentElement.style;
+  root.setProperty("--scale", String(settings.islandScale / 100));
+  root.setProperty("--lyrics-width", `${settings.lyricsWidth}px`);
+  root.setProperty("--lyrics-font", `${settings.lyricsFont}px`);
+  // Висота рядка ≈ 1.65 × шрифт: 12 px → 20 px, як було до кроку 18
+  root.setProperty("--lyrics-line", `${Math.round(settings.lyricsFont * 1.65)}px`);
+  lyrics.relayout();
 }
 
 loadSettings().then(applySettings);

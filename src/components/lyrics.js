@@ -6,8 +6,8 @@ import { listen } from "@tauri-apps/api/event";
 import { positionOf } from "./player.js";
 import { saveSettings } from "../settings-store.js";
 
-/** Висота одного рядка в px — має збігатися з .lyrics__line у island.css. */
-const LINE_HEIGHT = 20;
+/** Висота рядка, якщо рядків ще немає (як --lyrics-line за замовчуванням). */
+const DEFAULT_LINE_HEIGHT = 20;
 
 /**
  * @typedef {object} LyricLine
@@ -103,7 +103,9 @@ export function setupLyrics({ stage, track, toggle }) {
     track.children[index]?.classList.add("is-current");
     currentIndex = index;
     // Рядок index має опинитися в другому (середньому) ряду з трьох
-    track.style.transform = `translateY(${(1 - index) * LINE_HEIGHT}px)`;
+    // Висота рядка залежить від налаштування шрифту — беремо фактичну
+    const lineHeight = track.firstElementChild?.offsetHeight || DEFAULT_LINE_HEIGHT;
+    track.style.transform = `translateY(${(1 - index) * lineHeight}px)`;
   }
 
   /**
@@ -155,6 +157,12 @@ export function setupLyrics({ stage, track, toggle }) {
     setEnabled(value) {
       enabled = value !== false;
       updateVisibility();
+    },
+    /** Змінився шрифт тексту пісні — перерахувати зсув «стрічки». */
+    relayout() {
+      const index = currentIndex;
+      currentIndex = -2;
+      if (index >= -1) showLine(index);
     },
   };
 }

@@ -75,6 +75,26 @@
       </section>
 
       <section class="field">
+        <h2 data-i18n="settings.size"></h2>
+        <label class="range-row">
+          <span data-i18n="settings.sizeScale"></span>
+          <input type="range" id="island-scale" min="90" max="130" step="5" />
+          <output for="island-scale" id="island-scale-out"></output>
+        </label>
+        <label class="range-row">
+          <span data-i18n="settings.sizeLyricsWidth"></span>
+          <input type="range" id="lyrics-width" min="220" max="420" step="10" />
+          <output for="lyrics-width" id="lyrics-width-out"></output>
+        </label>
+        <label class="range-row">
+          <span data-i18n="settings.sizeLyricsFont"></span>
+          <input type="range" id="lyrics-font" min="11" max="16" step="1" />
+          <output for="lyrics-font" id="lyrics-font-out"></output>
+        </label>
+        <button class="link" id="reset-sizes" data-i18n="settings.sizeReset"></button>
+      </section>
+
+      <section class="field">
         <h2 data-i18n="settings.position"></h2>
         <div class="segmented" role="radiogroup">
           <label><input type="radio" name="edge" value="top" /> <span data-i18n="settings.positionTop"></span></label>

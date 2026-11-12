@@ -29,6 +29,8 @@ pub struct SettingsChanged {
     pub island_edge: Option<IslandEdge>,
     pub island_align: Option<IslandAlign>,
     pub island_offset: Option<f64>,
+    pub island_scale: Option<f64>,
+    pub lyrics_width: Option<f64>,
 }
 
 /// Мова, збережена в налаштуваннях, або "uk", якщо її ще не обирали.
