@@ -387,3 +387,11 @@ code {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
+/* Шрифт пісні: підпис над перемикачем */
+.font-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}

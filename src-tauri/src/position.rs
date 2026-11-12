@@ -51,7 +51,8 @@ const EDGE_GAP: f64 = 10.0;
 const LYRICS_GAP: f64 = 10.0;
 /// Мінімальний розмір вікна (CSS px) — як було до кроку 18.
 const MIN_WINDOW_WIDTH: f64 = 1000.0;
-const BASE_WINDOW_HEIGHT: f64 = 200.0;
+/// 216, а не 200: запас для анімацій (желе при розкритті, крапля), щоб нічого не обрізалось.
+const BASE_WINDOW_HEIGHT: f64 = 216.0;
 
 /// Край екрана. `#[serde(rename_all = "lowercase")]` — у JSON це "top" / "bottom".
 /// `#[default]` — значення для `IslandEdge::default()` (верх).
@@ -592,10 +593,10 @@ mod tests {
     #[test]
     fn window_grows_with_sizes() {
         // За замовчуванням — як до кроку 18
-        assert_eq!(Layout::default().window_size(), (1000.0, 200.0));
+        assert_eq!(Layout::default().window_size(), (1000.0, 216.0));
         // 130 % і широкий текст пісні: 2 × ((190 × 1.3 + 10) + ((420 + 10) × 1.3 + 10)) = 2 × (257 + 569) = 1652
         let big = layout_from(Some(130.0), Some(420.0));
-        assert_eq!(big.window_size(), (1652.0, 260.0));
+        assert_eq!(big.window_size(), (1652.0, 281.0)); // 216 × 1.3 = 280.8 → 281
     }
 
     #[test]

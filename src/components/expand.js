@@ -11,12 +11,15 @@ import { listen } from "@tauri-apps/api/event";
 
 /** Через скільки мс після відходу курсора острів згортається. */
 const COLLAPSE_DELAY = 400;
+/** Затримка перед розкриттям: курсор, що просто пролітає повз, острів не розкриває. */
+const HOVER_DELAY = 150;
 
 /**
  * @returns {{ pin: () => void, unpin: () => void, suspend: () => void, resume: () => void }}
  */
 export function setupExpand(island) {
   let collapseTimer = null;
+  let expandTimer = null;
   let hovered = false;
   let pinned = false;
   let suspended = false;
@@ -36,8 +39,15 @@ export function setupExpand(island) {
   // event.payload — те, що Rust передав у emit (true / false)
   listen("island:hover", (event) => {
     hovered = Boolean(event.payload);
-    if (hovered) expand();
-    else collapseLater();
+    clearTimeout(expandTimer);
+    if (hovered) {
+      clearTimeout(collapseTimer);
+      // Уже розкритий (курсор повернувся до згортання) — лишаємо як є
+      if (island.classList.contains("is-expanded")) return;
+      expandTimer = setTimeout(expand, HOVER_DELAY);
+    } else {
+      collapseLater();
+    }
   });
 
   return {
