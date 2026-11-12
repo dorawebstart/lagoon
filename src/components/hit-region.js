@@ -19,9 +19,16 @@ export function trackHitRegion(element) {
   // вікна (вниз, до лівого чи правого краю), розмір той самий — змінюються лише
   // класи на <body> (edge-bottom, align-left…, див. drag.js). Стежимо за ними
   // і надсилаємо прямокутник на наступному кадрі, коли CSS уже застосовано.
-  new MutationObserver(() => requestAnimationFrame(send)).observe(document.body, {
+  const resend = () => requestAnimationFrame(send);
+  new MutationObserver(resend).observe(document.body, {
     attributes: true,
     attributeFilter: ["class"],
+  });
+  // Масштаб (--scale) main.js ставить у style на <html>: острів стає більшим,
+  // але ResizeObserver цього не бачить (transform не змінює розміру елемента)
+  new MutationObserver(resend).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["style"],
   });
   send();
 }

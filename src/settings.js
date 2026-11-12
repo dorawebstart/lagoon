@@ -125,6 +125,7 @@ async function init() {
   customColor.addEventListener("change", () => save({ theme: "custom", islandColor: customColor.value }));
 
   setupColors(settings);
+  setupSizes(settings);
   setupPosition(settings);
   await setupAutostart();
   await setupClaudeSection();
@@ -193,6 +194,48 @@ function setupColors(settings) {
     });
     container.append(button);
   }
+}
+
+/** Повзунки розмірів: ключ налаштування → поле, підпис значення й одиниця. */
+const SIZE_FIELDS = [
+  { key: "islandScale", id: "island-scale", unit: "%" },
+  { key: "lyricsWidth", id: "lyrics-width", unit: "px" },
+  { key: "lyricsFont", id: "lyrics-font", unit: "px" },
+];
+
+/** Значення за замовчуванням для «Скинути розміри» — як до кроку 18. */
+const DEFAULT_SIZES = { islandScale: 100, lyricsWidth: 280, lyricsFont: 12 };
+
+/**
+ * Розмір: масштаб острова, ширина й шрифт тексту пісні.
+ * Під час руху повзунка ("input") оновлюємо лише підпис, а зберігаємо,
+ * коли повзунок відпустили ("change"), — щоб не змінювати вікно 30 разів на секунду.
+ */
+function setupSizes(settings) {
+  const fields = SIZE_FIELDS.map((field) => ({
+    ...field,
+    input: document.querySelector(`#${field.id}`),
+    output: document.querySelector(`#${field.id}-out`),
+  }));
+  const show = (values) => {
+    for (const field of fields) {
+      field.input.value = values[field.key];
+      field.output.textContent = `${values[field.key]} ${field.unit}`;
+    }
+  };
+  show(settings);
+
+  for (const field of fields) {
+    field.input.addEventListener("input", () => {
+      field.output.textContent = `${field.input.value} ${field.unit}`;
+    });
+    field.input.addEventListener("change", () => save({ [field.key]: Number(field.input.value) }));
+  }
+
+  document.querySelector("#reset-sizes").addEventListener("click", () => {
+    show(DEFAULT_SIZES);
+    save(DEFAULT_SIZES);
+  });
 }
 
 /**

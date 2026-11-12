@@ -16,6 +16,10 @@ export const DEFAULTS = {
   accentColor: "#7ee787",
   /** Свій колір тексту; порожній рядок — стандартний (білий). */
   textColor: "",
+  /** Розміри: масштаб острова (%), ширина (px) і шрифт (px) тексту пісні. */
+  islandScale: 100,
+  lyricsWidth: 280,
+  lyricsFont: 12,
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
   showLyrics: true,
   /** Позиція острова: край ("top" | "bottom"), прив'язка ("left" | "center" | "right")
