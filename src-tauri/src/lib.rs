@@ -3,6 +3,7 @@
 
 // `mod назва;` каже компілятору: «є модуль, його код — у файлі назва.rs».
 // Без цих рядків файли просто ігнорувалися б.
+mod agent;
 mod media;
 mod settings;
 mod tray;
@@ -27,7 +28,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
             media::media_current,
-            media::media_control
+            media::media_control,
+            agent::agent_info,
+            agent::agent_respond
         ])
         // Хрестик у вікні налаштувань лише ховає його, а не знищує:
         // так наступне відкриття миттєве, а застосунок не завершується.
@@ -50,6 +53,11 @@ pub fn run() {
 
             // Фоновий потік, що стежить за музикою (Spotify, YouTube…)
             media::start(handle.clone());
+
+            // HTTP-сервер для hooks Claude Code (127.0.0.1:47823).
+            // manage() тут, а не в Builder, бо серверу потрібен уже готовий
+            // застосунок (AppHandle) і сховище налаштувань з токеном.
+            app.manage(agent::start(&handle));
 
             // Коли в налаштуваннях змінили мову — перекладаємо меню трею.
             // `move` переносить копію `handle` всередину замикання,
