@@ -1,0 +1,20 @@
+{
+  "locale": "uk-UA",
+  "settings": {
+    "title": "Налаштування Lagoon",
+    "language": "Мова",
+    "languageHint": "Змінюється одразу, без перезапуску",
+    "color": "Колір острова",
+    "colorCustom": "Свій колір",
+    "comingSoon": "Скоро",
+    "autostart": "Запускати разом з Windows",
+    "claude": "Claude Code: порт, токен і конфіг hooks",
+    "saved": "Збережено"
+  },
+  "colors": {
+    "black": "Чорний",
+    "graphite": "Графіт",
+    "navy": "Нічний синій",
+    "plum": "Слива"
+  }
+}

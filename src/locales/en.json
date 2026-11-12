@@ -1,0 +1,20 @@
+{
+  "locale": "en-GB",
+  "settings": {
+    "title": "Lagoon Settings",
+    "language": "Language",
+    "languageHint": "Applies instantly, no restart needed",
+    "color": "Island color",
+    "colorCustom": "Custom color",
+    "comingSoon": "Soon",
+    "autostart": "Start with Windows",
+    "claude": "Claude Code: port, token and hooks config",
+    "saved": "Saved"
+  },
+  "colors": {
+    "black": "Black",
+    "graphite": "Graphite",
+    "navy": "Midnight blue",
+    "plum": "Plum"
+  }
+}

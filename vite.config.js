@@ -19,5 +19,12 @@ export default defineConfig({
     // WebView2 на Windows базується на Chromium, тож можна сучасний JS
     target: "chrome105",
     outDir: "dist",
+    // Дві сторінки: острів (index.html) і вікно налаштувань (settings.html)
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        settings: "settings.html",
+      },
+    },
   },
 });

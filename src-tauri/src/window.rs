@@ -6,7 +6,20 @@ use std::thread;
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{Emitter, Manager, PhysicalPosition, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, State, WebviewWindow};
+
+/// Label вікна налаштувань з tauri.conf.json.
+pub const SETTINGS_LABEL: &str = "settings";
+
+/// Показує вікно налаштувань і передає йому фокус.
+/// Помилки тут ігноруємо: якщо вікно не відкрилося, острів працює далі.
+pub fn open_settings(app: &AppHandle) {
+    if let Some(settings) = app.get_webview_window(SETTINGS_LABEL) {
+        let _ = settings.show();
+        let _ = settings.unminimize();
+        let _ = settings.set_focus();
+    }
+}
 
 /// Назва події, яку слухає фронтенд: `listen("island:hover", ...)`.
 pub const HOVER_EVENT: &str = "island:hover";

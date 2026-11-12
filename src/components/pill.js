@@ -1,33 +1,47 @@
 // Годинник і дата на острові.
 
-const timeFormatter = new Intl.DateTimeFormat("uk-UA", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
+let locale = "uk-UA";
+let clockEls = [];
+let dateEl = null;
+let timer = null;
 
-const dateFormatter = new Intl.DateTimeFormat("uk-UA", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
+function render() {
+  const now = new Date();
+  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(now);
+  for (const el of clockEls) {
+    el.textContent = time;
+    el.dateTime = now.toISOString();
+  }
+  if (dateEl) {
+    dateEl.textContent = new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(now);
+  }
+  return now;
+}
 
 /**
- * Запускає годинник у всіх елементах `clockEls` і дату в `dateEl`.
+ * Запускає годинник у всіх елементах `clocks` і дату в `date`.
  * Оновлюємо рівно на початку кожної хвилини, а не кожну секунду.
  */
-export function startClock(clockEls, dateEl) {
-  const tick = () => {
-    const now = new Date();
-    const time = timeFormatter.format(now);
-    for (const el of clockEls) {
-      el.textContent = time;
-      el.dateTime = now.toISOString();
-    }
-    if (dateEl) dateEl.textContent = dateFormatter.format(now);
+export function startClock(clocks, date) {
+  clockEls = [...clocks];
+  dateEl = date;
 
+  const tick = () => {
+    const now = render();
     // Скільки мілісекунд лишилося до наступної хвилини
     const msToNextMinute = 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds());
-    setTimeout(tick, msToNextMinute);
+    timer = setTimeout(tick, msToNextMinute);
   };
+  clearTimeout(timer);
   tick();
+}
+
+/** Змінює мову дати/часу ("uk-UA", "en-GB") і одразу перемальовує. */
+export function setClockLocale(newLocale) {
+  locale = newLocale;
+  render();
 }
