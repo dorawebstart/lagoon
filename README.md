@@ -2,16 +2,19 @@
 
 > 🇺🇦 [Українська](#українська) · 🇬🇧 [English](#english)
 
-> **v0.1** — перша версія (MVP). / First release (MVP).
+> **v0.2 «Плеєр+»** — гучність, перемотка, текст пісні, позиція острова. Що нового — у [CHANGELOG](CHANGELOG.md). / Volume, seeking, lyrics, island position — see the [CHANGELOG](CHANGELOG.md).
 
 ---
 
 ## Українська
 
-**Lagoon** — це «Dynamic Island» для Windows: маленька чорна пігулка по центру верхнього краю екрана, яка розкривається при наведенні і показує корисне:
+**Lagoon** — це «Dynamic Island» для Windows: маленька чорна пігулка вгорі (або внизу) екрана, яка розкривається при наведенні і показує корисне:
 
 - 🕒 годинник;
-- 🎵 що зараз грає (Spotify, YouTube у браузері та інші програми з медіапанеллю Windows) з кнопками ⏮ ⏯ ⏭;
+- 🎵 що зараз грає (Spotify, YouTube і SoundCloud у браузері та інші програми з медіапанеллю Windows) з кнопками ⏮ ⏯ ⏭;
+- 🔊 гучність саме програми, що грає (повзунок або коліщатко миші над островом), і перемотка по прогрес-бару;
+- 🎤 синхронізований текст пісні окремим острівцем поруч (з [LRCLIB](https://lrclib.net)): щойно проспіваний, поточний і наступний рядок;
+- ↔️ острів можна перетягнути мишею вздовж краю або вниз — він «прилипає» до найближчого краю і запам'ятовує місце;
 - 🤖 статус **Claude Code** і кнопки «Дозволити / Відхилити» для запитів дозволу прямо з острова;
 - 🌐 інтерфейс українською та англійською.
 
@@ -26,6 +29,8 @@
 1. Завантаж `Lagoon_*_x64-setup.exe` (або `.msi`) зі сторінки [Releases](https://github.com/dorawebstart/lagoon/releases/latest).
 2. Запусти. Інсталятор не підписаний, тож Windows SmartScreen може попередити: «Докладніше» → «Виконати все одно».
 3. Острів з'явиться вгорі екрана, іконка — у треї. Автозапуск вмикається в налаштуваннях.
+
+> Текст пісні береться з відкритої бази LRCLIB, яку заповнюють користувачі. Для частини пісень там немає синхронізованого тексту — тоді острівця з текстом не буде. Додати текст можна, наприклад, програмою [LRCGET](https://github.com/tranxuanthang/lrcget).
 
 ### Збірка з коду
 
@@ -84,10 +89,13 @@ npm run tauri build   # інсталятор
 
 ## English
 
-**Lagoon** is a "Dynamic Island" for Windows: a small black pill at the top center of the screen that expands on hover and shows:
+**Lagoon** is a "Dynamic Island" for Windows: a small black pill at the top (or bottom) of the screen that expands on hover and shows:
 
 - 🕒 a clock;
-- 🎵 what's playing (Spotify, YouTube in a browser and other apps that integrate with Windows media controls) with ⏮ ⏯ ⏭ buttons;
+- 🎵 what's playing (Spotify, YouTube and SoundCloud in a browser and other apps that integrate with Windows media controls) with ⏮ ⏯ ⏭ buttons;
+- 🔊 the volume of the playing app (slider or mouse wheel over the island) and seeking on the progress bar;
+- 🎤 synced lyrics in a separate small island next to it (from [LRCLIB](https://lrclib.net)): the previous, current and next line;
+- ↔️ drag the island along the edge or to the bottom — it snaps to the nearest edge and remembers its place;
 - 🤖 **Claude Code** status and Allow / Deny buttons for permission requests, right from the island;
 - 🌐 Ukrainian and English UI.
 
@@ -102,6 +110,8 @@ Built with **Tauri 2** (Rust) + HTML/CSS/JavaScript.
 1. Download `Lagoon_*_x64-setup.exe` (or `.msi`) from [Releases](https://github.com/dorawebstart/lagoon/releases/latest).
 2. Run it. The installer is unsigned, so SmartScreen may warn: "More info" → "Run anyway".
 3. The island appears at the top of the screen, the icon in the tray. Enable autostart in Settings.
+
+> Lyrics come from LRCLIB, an open community database. Some songs have no synced lyrics there — then the lyrics island doesn't appear. You can add lyrics with e.g. [LRCGET](https://github.com/tranxuanthang/lrcget).
 
 ### Build from source
 
