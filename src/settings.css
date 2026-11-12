@@ -160,7 +160,9 @@ h2 {
 }
 
 .swatch--custom input[type="color"]::-webkit-color-swatch {
-  border: none;
+  /* Рамка, щоб кружечок було видно, навіть якщо колір збігається з карткою
+     (білий текст на світлій темі налаштувань) */
+  border: 1px solid var(--border);
   border-radius: 999px;
 }
 
@@ -359,6 +361,8 @@ code {
 }
 
 .color-input::-webkit-color-swatch {
-  border: none;
+  /* Рамка, щоб кружечок було видно, навіть якщо колір збігається з карткою
+     (білий текст на світлій темі налаштувань) */
+  border: 1px solid var(--border);
   border-radius: 999px;
 }
