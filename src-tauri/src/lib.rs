@@ -15,6 +15,10 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // manage — реєструє спільний стан, доступний з команд і потоків
+        .manage(window::HitRegion::default())
+        // Команди, які можна викликати з JS через invoke
+        .invoke_handler(tauri::generate_handler![window::set_hit_region])
         // setup виконується один раз після старту, коли вікна вже створено.
         // `|app| { ... }` — замикання (closure), аналог стрілкової функції в JS.
         .setup(|app| {
@@ -25,6 +29,9 @@ pub fn run() {
                 // Вікно створене невидимим (visible: false), щоб не «стрибало»:
                 // спершу ставимо на місце, потім показуємо.
                 island.show()?;
+                // Тут `island` передаємо без `&`, тобто переміщуємо (move):
+                // після цього рядка змінною `island` користуватися вже не можна.
+                window::start_click_through(island);
             }
             Ok(())
         })
