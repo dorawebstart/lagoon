@@ -76,10 +76,12 @@ export function setupDrag(island, expander) {
 
   listen("island:drag-end", endDrag);
 
-  // Вгорі чи внизу і з якого боку текст пісні — це вирішує Rust
+  // Вгорі чи внизу, до якого краю прив'язаний і з якого боку текст пісні — це вирішує Rust
   function applyPlacement(placement) {
     if (!placement) return;
     document.body.classList.toggle("edge-bottom", placement.edge === "bottom");
+    document.body.classList.toggle("align-left", placement.align === "left");
+    document.body.classList.toggle("align-right", placement.align === "right");
     document.body.classList.toggle("lyrics-right", placement.lyricsSide === "right");
   }
   listen("island:placement", (event) => applyPlacement(event.payload));

@@ -92,6 +92,13 @@ impl Rect {
 #[derive(Default)]
 pub struct HitRegion(Mutex<Rect>);
 
+impl HitRegion {
+    /// Поточний прямокутник пігулки (копія — замок одразу відпускається).
+    pub fn get(&self) -> Rect {
+        *self.0.lock().unwrap()
+    }
+}
+
 /// Команда для JS: `invoke("set_hit_region", { rect: { x, y, width, height } })`.
 ///
 /// `State<HitRegion>` Tauri підставляє сам: це доступ до стану, який ми

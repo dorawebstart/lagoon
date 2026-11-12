@@ -4,7 +4,7 @@
 use serde::Deserialize;
 use tauri::AppHandle;
 
-use crate::position::IslandEdge;
+use crate::position::{IslandAlign, IslandEdge};
 use tauri_plugin_store::StoreExt;
 
 /// Файл налаштувань. Лежить у теці даних застосунку:
@@ -21,12 +21,13 @@ pub const DEFAULT_LANGUAGE: &str = "uk";
 /// (щоб перекласти меню в треї) і позиція острова; решту полів serde пропустить.
 ///
 /// `Option<...>` — поле може бути відсутнім у JSON, тоді буде `None`.
-/// `rename_all = "camelCase"` — у JSON поля звуться `islandEdge`, `islandOffset`.
+/// `rename_all = "camelCase"` — у JSON поля звуться `islandEdge`, `islandAlign`, `islandOffset`.
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsChanged {
     pub language: Option<String>,
     pub island_edge: Option<IslandEdge>,
+    pub island_align: Option<IslandAlign>,
     pub island_offset: Option<f64>,
 }
 

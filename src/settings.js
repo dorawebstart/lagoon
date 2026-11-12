@@ -129,7 +129,7 @@ function setupPosition(settings) {
 
   document.querySelector("#reset-position").addEventListener("click", () => {
     showEdge("top");
-    save({ islandEdge: "top", islandOffset: 0 });
+    save({ islandEdge: "top", islandAlign: "center", islandOffset: 0 });
   });
 }
 

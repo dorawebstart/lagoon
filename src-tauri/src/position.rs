@@ -3,9 +3,15 @@
 //
 // Позиція зберігається в settings.json двома полями:
 //   islandEdge   — "top" | "bottom";
-//   islandOffset — зсув центру острова від центру робочої області
-//                  у частках її ширини (−0.5…0.5). Частки, а не пікселі, —
-//                  щоб позиція не «з'їжджала» після зміни роздільної здатності.
+//   islandAlign  — "left" | "center" | "right": до чого прив'язаний острів;
+//   islandOffset — де «точка прив'язки» острова: зсув від центру робочої
+//                  області у частках її ширини (−0.5…0.5). Частки, а не
+//                  пікселі, — щоб позиція не «з'їжджала» після зміни роздільної здатності.
+//
+// Точка прив'язки: посередині екрана — центр острова (розкривається в обидва
+// боки); біля лівого краю — лівий край острова (розкривається вправо);
+// біля правого — правий край (розкривається вліво). Так згорнута пігулка,
+// кинута в куток, лишається в кутку, а розгорнута не вилазить за екран.
 //
 // Усе рахуємо від робочої області основного монітора (екран мінус панель
 // задач), тож унизу острів стоїть над панеллю задач, а не під нею.
@@ -25,15 +31,20 @@ use tauri_plugin_store::StoreExt;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
 
 use crate::settings::STORE_FILE;
+use crate::window::HitRegion;
 
-/// Подія для фронтенду: де острів (край) і з якого боку текст пісні.
+/// Подія для фронтенду: край, вирівнювання і з якого боку текст пісні.
 pub const PLACEMENT_EVENT: &str = "island:placement";
 /// Подія для фронтенду: перетягування завершилося.
 pub const DRAG_END_EVENT: &str = "island:drag-end";
 
-/// Скільки місця (CSS px) має лишатися від центру острова до краю екрана:
+/// Скільки місця (CSS px) має лишатися від центру острова до краю екрана,
+/// щоб розгорнутий острів уміщався, коли він вирівняний по центру:
 /// половина розгорнутого острова (380 / 2) + 10 px відступу.
 const ISLAND_HALF_WIDTH: f64 = 200.0;
+/// Відступ (CSS px) острова від краю вікна й екрана, коли він прив'язаний до краю.
+/// Має збігатися з margin у island.css (body.align-left / align-right).
+const EDGE_GAP: f64 = 10.0;
 /// Скільки місця (CSS px) займає острівець з текстом пісні разом із проміжком:
 /// 280 + 10 + 10 px відступу від краю екрана.
 const LYRICS_SPACE: f64 = 300.0;
@@ -48,6 +59,16 @@ pub enum IslandEdge {
     Bottom,
 }
 
+/// До чого прив'язаний острів по горизонталі (див. пояснення на початку файлу).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum IslandAlign {
+    Left,
+    #[default]
+    Center,
+    Right,
+}
+
 /// З якого боку від острова показувати текст пісні.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -60,7 +81,8 @@ pub enum Side {
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct IslandPosition {
     pub edge: IslandEdge,
-    /// Зсув центру від центру робочої області, у частках її ширини.
+    pub align: IslandAlign,
+    /// Зсув точки прив'язки від центру робочої області, у частках її ширини.
     pub offset: f64,
 }
 
@@ -69,6 +91,7 @@ pub struct IslandPosition {
 #[serde(rename_all = "camelCase")]
 pub struct Placement {
     pub edge: IslandEdge,
+    pub align: IslandAlign,
     pub lyrics_side: Side,
 }
 
@@ -81,24 +104,41 @@ pub struct Area {
     pub height: f64,
 }
 
+impl Area {
+    fn right(&self) -> f64 {
+        self.x + self.width
+    }
+
+    fn center_x(&self) -> f64 {
+        self.x + self.width / 2.0
+    }
+}
+
 // ───────── Чисті розрахунки (без Windows, тому їх легко тестувати) ─────────
 
-/// Обмежує центр острова так, щоб розгорнутий острів не виходив за екран.
+/// Точка прив'язки у фізичних пікселях, обмежена межами екрана.
 /// `scale` — масштаб Windows (1.25 при 125 %): CSS px × scale = фізичні px.
-fn clamp_center(area: Area, scale: f64, center_x: f64) -> f64 {
-    let margin = ISLAND_HALF_WIDTH * scale;
-    let min = area.x + margin;
-    let max = area.x + area.width - margin;
+fn anchor_x(area: Area, scale: f64, position: IslandPosition) -> f64 {
+    let wanted = area.center_x() + position.offset * area.width;
+    let (min, max) = match position.align {
+        // Центр — не ближче половини розгорнутого острова до краю
+        IslandAlign::Center => (
+            area.x + ISLAND_HALF_WIDTH * scale,
+            area.right() - ISLAND_HALF_WIDTH * scale,
+        ),
+        // Край острова — не ближче 10 px до краю екрана
+        IslandAlign::Left | IslandAlign::Right => {
+            (area.x + EDGE_GAP * scale, area.right() - EDGE_GAP * scale)
+        }
+    };
     if min > max {
-        // Екран вужчий за острів (майже неможливо) — просто центр.
-        area.x + area.width / 2.0
+        area.center_x() // екран вужчий за острів (майже неможливо)
     } else {
-        center_x.clamp(min, max)
+        wanted.clamp(min, max)
     }
 }
 
 /// Лівий верхній кут вікна для позиції `position`.
-/// Центр острова збігається з центром вікна (CSS центрує його по горизонталі).
 pub fn window_origin(
     area: Area,
     window_width: f64,
@@ -106,9 +146,16 @@ pub fn window_origin(
     scale: f64,
     position: IslandPosition,
 ) -> (f64, f64) {
-    let wanted = area.x + area.width / 2.0 + position.offset * area.width;
-    let center = clamp_center(area, scale, wanted);
-    let x = center - window_width / 2.0;
+    let anchor = anchor_x(area, scale, position);
+    // Де острів усередині вікна — так його ставить CSS (island.css):
+    let x = match position.align {
+        // по центру вікна
+        IslandAlign::Center => anchor - window_width / 2.0,
+        // лівий край острова — за 10 px від лівого краю вікна
+        IslandAlign::Left => anchor - EDGE_GAP * scale,
+        // правий край острова — за 10 px від правого краю вікна
+        IslandAlign::Right => anchor + EDGE_GAP * scale - window_width,
+    };
     let y = match position.edge {
         IslandEdge::Top => area.y,
         // Унизу вікно прив'язане нижнім краєм до низу робочої області.
@@ -117,30 +164,60 @@ pub fn window_origin(
     (x, y)
 }
 
-/// «Прилипання» після перетягування: край — за тим, у якій половині екрана
-/// курсор; зсув — за тим, де зараз центр вікна (з обмеженням межами екрана).
-pub fn snap(area: Area, scale: f64, window_center_x: f64, cursor_y: f64) -> IslandPosition {
-    let center = clamp_center(area, scale, window_center_x);
+/// «Прилипання» після перетягування.
+/// - край — за тим, у якій половині екрана курсор;
+/// - вирівнювання — за тим, чи вміститься біля краю розгорнутий острів по центру:
+///   якщо ні — прив'язуємо до цього краю, і острів лишається там, де його кинули.
+///
+/// `island_left` / `island_right` — де зараз (згорнутий) острів, фізичні px.
+pub fn snap(
+    area: Area,
+    scale: f64,
+    island_left: f64,
+    island_right: f64,
+    cursor_y: f64,
+) -> IslandPosition {
     let edge = if cursor_y < area.y + area.height / 2.0 {
         IslandEdge::Top
     } else {
         IslandEdge::Bottom
     };
-    IslandPosition {
+    let center = (island_left + island_right) / 2.0;
+    let room = ISLAND_HALF_WIDTH * scale;
+    let (align, anchor) = if center - area.x < room {
+        (IslandAlign::Left, island_left)
+    } else if area.right() - center < room {
+        (IslandAlign::Right, island_right)
+    } else {
+        (IslandAlign::Center, center)
+    };
+    let position = IslandPosition {
         edge,
-        offset: (center - (area.x + area.width / 2.0)) / area.width,
+        align,
+        offset: (anchor - area.center_x()) / area.width,
+    };
+    // Ще раз через anchor_x, щоб збережене значення вже було в межах екрана.
+    // `..position` — «решту полів узяти з position» (як spread у JS).
+    IslandPosition {
+        offset: (anchor_x(area, scale, position) - area.center_x()) / area.width,
+        ..position
     }
 }
 
 /// Текст пісні — ліворуч від острова, а якщо там не вміщається (острів біля
 /// лівого краю екрана) — праворуч.
 pub fn lyrics_side(area: Area, scale: f64, position: IslandPosition) -> Side {
-    let wanted = area.x + area.width / 2.0 + position.offset * area.width;
-    let center = clamp_center(area, scale, wanted);
-    if center - area.x < (ISLAND_HALF_WIDTH + LYRICS_SPACE) * scale {
-        Side::Right
-    } else {
-        Side::Left
+    match position.align {
+        IslandAlign::Left => Side::Right,
+        IslandAlign::Right => Side::Left,
+        IslandAlign::Center => {
+            let center = anchor_x(area, scale, position);
+            if center - area.x < (ISLAND_HALF_WIDTH + LYRICS_SPACE) * scale {
+                Side::Right
+            } else {
+                Side::Left
+            }
+        }
     }
 }
 
@@ -169,17 +246,26 @@ pub fn saved(app: &AppHandle) -> IslandPosition {
         .get("islandEdge")
         .and_then(|value| serde_json::from_value(value).ok())
         .unwrap_or_default();
+    let align = store
+        .get("islandAlign")
+        .and_then(|value| serde_json::from_value(value).ok())
+        .unwrap_or_default();
     let offset = store
         .get("islandOffset")
         .and_then(|value| value.as_f64())
         .unwrap_or(0.0);
-    IslandPosition { edge, offset }
+    IslandPosition {
+        edge,
+        align,
+        offset,
+    }
 }
 
 /// Записує позицію в settings.json (той самий файл, що й у JS).
 fn save(app: &AppHandle, position: IslandPosition) {
     if let Ok(store) = app.store(STORE_FILE) {
         store.set("islandEdge", json!(position.edge));
+        store.set("islandAlign", json!(position.align));
         store.set("islandOffset", json!(position.offset));
         if let Err(error) = store.save() {
             eprintln!("position: не вдалося зберегти: {error}");
@@ -203,6 +289,7 @@ pub fn place(window: &WebviewWindow, position: IslandPosition) -> tauri::Result<
 fn placement(area: Area, scale: f64, position: IslandPosition) -> Placement {
     Placement {
         edge: position.edge,
+        align: position.align,
         lyrics_side: lyrics_side(area, scale, position),
     }
 }
@@ -289,11 +376,15 @@ fn finish_drag(window: &WebviewWindow, cursor_y: f64) {
     let Some((area, scale)) = primary_area(window) else {
         return;
     };
-    let (Ok(origin), Ok(size)) = (window.outer_position(), window.outer_size()) else {
+    let Ok(origin) = window.outer_position() else {
         return;
     };
-    let center_x = origin.x as f64 + size.width as f64 / 2.0;
-    let position = snap(area, scale, center_x, cursor_y);
+    // Де зараз острів: прямокутник пігулки (CSS px відносно вікна), який
+    // фронтенд надсилає для click-through, переводимо у фізичні px екрана.
+    let rect = window.state::<HitRegion>().get();
+    let island_left = origin.x as f64 + rect.x * scale;
+    let island_right = island_left + rect.width * scale;
+    let position = snap(area, scale, island_left, island_right, cursor_y);
     save(window.app_handle(), position);
     let _ = place(window, position);
 }
@@ -310,6 +401,14 @@ mod tests {
         height: 1040.0,
     };
 
+    fn position(edge: IslandEdge, align: IslandAlign, offset: f64) -> IslandPosition {
+        IslandPosition {
+            edge,
+            align,
+            offset,
+        }
+    }
+
     #[test]
     fn places_top_center_by_default() {
         let (x, y) = window_origin(AREA, 1000.0, 200.0, 1.0, IslandPosition::default());
@@ -318,45 +417,65 @@ mod tests {
 
     #[test]
     fn places_bottom_above_taskbar() {
-        let position = IslandPosition {
-            edge: IslandEdge::Bottom,
-            offset: 0.0,
-        };
-        let (_, y) = window_origin(AREA, 1000.0, 200.0, 1.0, position);
+        let bottom = position(IslandEdge::Bottom, IslandAlign::Center, 0.0);
+        let (_, y) = window_origin(AREA, 1000.0, 200.0, 1.0, bottom);
         assert_eq!(y, 840.0); // 1040 − 200: нижній край вікна на межі панелі задач
     }
 
     #[test]
-    fn clamps_offset_to_screen() {
-        let position = IslandPosition {
-            edge: IslandEdge::Top,
-            offset: -0.5, // крайній лівий
-        };
-        let (x, _) = window_origin(AREA, 1000.0, 200.0, 1.0, position);
-        // Центр острова не ближче 200 px до краю → вікно 1000 px починається з −300.
+    fn clamps_center_to_screen() {
+        let far_left = position(IslandEdge::Top, IslandAlign::Center, -0.5);
+        let (x, _) = window_origin(AREA, 1000.0, 200.0, 1.0, far_left);
+        // Центр не ближче 200 px до краю → вікно 1000 px починається з −300.
         assert_eq!(x, -300.0);
     }
 
     #[test]
-    fn snaps_to_nearest_edge() {
-        let top = snap(AREA, 1.0, 960.0, 300.0);
-        assert_eq!(top.edge, IslandEdge::Top);
-        assert_eq!(top.offset, 0.0);
+    fn island_dropped_in_corner_stays_there() {
+        // Згорнутий острів 200 px кинули в лівий верхній кут: x від 10 до 210.
+        let left = snap(AREA, 1.0, 10.0, 210.0, 20.0);
+        assert_eq!(left.align, IslandAlign::Left);
+        assert_eq!(left.edge, IslandEdge::Top);
+        // Лівий край острова за 10 px від краю вікна → вікно починається з 0.
+        let (x, _) = window_origin(AREA, 1000.0, 200.0, 1.0, left);
+        assert_eq!(x, 0.0);
 
-        let bottom = snap(AREA, 1.0, 1440.0, 900.0);
-        assert_eq!(bottom.edge, IslandEdge::Bottom);
-        assert_eq!(bottom.offset, 0.25); // (1440 − 960) / 1920
+        // Правий нижній кут: x від 1710 до 1910.
+        let right = snap(AREA, 1.0, 1710.0, 1910.0, 1000.0);
+        assert_eq!(right.align, IslandAlign::Right);
+        assert_eq!(right.edge, IslandEdge::Bottom);
+        let (x, _) = window_origin(AREA, 1000.0, 200.0, 1.0, right);
+        assert_eq!(x, 920.0); // 1910 + 10 − 1000
     }
 
     #[test]
-    fn moves_lyrics_right_near_left_edge() {
-        let centered = IslandPosition::default();
-        assert_eq!(lyrics_side(AREA, 1.0, centered), Side::Left);
+    fn snaps_center_away_from_edges() {
+        let middle = snap(AREA, 1.0, 1340.0, 1540.0, 900.0);
+        assert_eq!(middle.align, IslandAlign::Center);
+        assert_eq!(middle.edge, IslandEdge::Bottom);
+        assert_eq!(middle.offset, 0.25); // центр 1440: (1440 − 960) / 1920
+    }
 
-        let left = IslandPosition {
-            edge: IslandEdge::Top,
-            offset: -0.4, // центр на 192 px → обмежиться до 200 px від краю
-        };
+    #[test]
+    fn island_is_kept_inside_screen_when_dropped_past_edge() {
+        // Кинули так, що острів наполовину за лівим краєм екрана.
+        let left = snap(AREA, 1.0, -100.0, 100.0, 20.0);
+        assert_eq!(left.align, IslandAlign::Left);
+        let (x, _) = window_origin(AREA, 1000.0, 200.0, 1.0, left);
+        assert_eq!(x, 0.0); // острів повернувся на 10 px від краю
+    }
+
+    #[test]
+    fn chooses_lyrics_side() {
+        assert_eq!(
+            lyrics_side(AREA, 1.0, IslandPosition::default()),
+            Side::Left
+        );
+        let left = position(IslandEdge::Top, IslandAlign::Left, -0.49);
         assert_eq!(lyrics_side(AREA, 1.0, left), Side::Right);
+        let near_left = position(IslandEdge::Top, IslandAlign::Center, -0.35);
+        assert_eq!(lyrics_side(AREA, 1.0, near_left), Side::Right); // центр на 288 px
+        let right = position(IslandEdge::Top, IslandAlign::Right, 0.49);
+        assert_eq!(lyrics_side(AREA, 1.0, right), Side::Left);
     }
 }

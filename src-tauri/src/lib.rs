@@ -83,7 +83,14 @@ pub fn run() {
                     changed.island_offset,
                     listener_handle.get_webview_window("main"),
                 ) {
-                    let _ = position::place(&island, position::IslandPosition { edge, offset });
+                    // Старі налаштування без islandAlign — вважаємо, що по центру.
+                    let align = changed.island_align.unwrap_or_default();
+                    let target = position::IslandPosition {
+                        edge,
+                        align,
+                        offset,
+                    };
+                    let _ = position::place(&island, target);
                 }
             });
 

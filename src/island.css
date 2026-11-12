@@ -463,6 +463,24 @@ body.edge-bottom .lyrics {
   bottom: 6px;
 }
 
+/* Острів прив'язаний до лівого / правого краю екрана: стоїть за 10 px від краю
+   вікна і розкривається всередину екрана (EDGE_GAP у position.rs) */
+body.align-left {
+  justify-content: flex-start;
+}
+
+body.align-left .stage {
+  margin-left: 10px;
+}
+
+body.align-right {
+  justify-content: flex-end;
+}
+
+body.align-right .stage {
+  margin-right: 10px;
+}
+
 /* Острів біля лівого краю екрана — текст пісні праворуч від нього */
 body.lyrics-right .lyrics {
   right: auto;
