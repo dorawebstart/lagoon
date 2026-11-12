@@ -47,14 +47,27 @@
         </div>
       </section>
 
-      <!-- Наступні пункти з'являться в кроках 9 і 10 -->
+      <section class="field">
+        <h2>Claude Code</h2>
+        <div class="row">
+          <span data-i18n="settings.port"></span>
+          <code id="agent-port">—</code>
+        </div>
+        <div class="row">
+          <span data-i18n="settings.token"></span>
+          <span class="token">
+            <code id="agent-token">••••••••</code>
+            <button class="link" id="toggle-token" data-i18n="settings.show"></button>
+          </span>
+        </div>
+        <button class="primary" id="copy-hooks" data-i18n="settings.copyHooks"></button>
+        <p class="hint" data-i18n="settings.hooksHint"></p>
+      </section>
+
+      <!-- Автозапуск з'явиться в кроці 10 -->
       <section class="field field--disabled">
         <div class="row">
           <span data-i18n="settings.autostart"></span>
-          <span class="badge" data-i18n="settings.comingSoon"></span>
-        </div>
-        <div class="row">
-          <span data-i18n="settings.claude"></span>
           <span class="badge" data-i18n="settings.comingSoon"></span>
         </div>
       </section>

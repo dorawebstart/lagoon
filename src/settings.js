@@ -1,7 +1,9 @@
-// Вікно налаштувань: мова і колір острова.
+// Вікно налаштувань: мова, колір острова, підключення Claude Code.
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { setLanguage, t } from "./i18n.js";
 import { loadSettings, saveSettings } from "./settings-store.js";
+import { buildHooksConfig } from "./hooks-config.js";
 
 const languageInputs = document.querySelectorAll('input[name="language"]');
 const colorInputs = document.querySelectorAll('input[name="color"]');
@@ -30,12 +32,51 @@ function showColor(color) {
   if (!matched) customColor.value = color;
 }
 
-async function save(patch) {
-  await saveSettings(patch);
-  status.textContent = t("settings.saved");
+function flash(text) {
+  status.textContent = text;
   status.style.opacity = "1";
   clearTimeout(statusTimer);
-  statusTimer = setTimeout(() => (status.style.opacity = "0"), 1200);
+  statusTimer = setTimeout(() => (status.style.opacity = "0"), 1600);
+}
+
+async function save(patch) {
+  await saveSettings(patch);
+  flash(t("settings.saved"));
+}
+
+/** Копіює текст у буфер обміну (із запасним способом для старих WebView). */
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.append(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+}
+
+/** Секція Claude Code: порт, токен (прихований) і кнопка «Скопіювати конфіг». */
+async function setupClaudeSection() {
+  const { port, token } = await invoke("agent_info");
+  const tokenEl = document.querySelector("#agent-token");
+  const toggle = document.querySelector("#toggle-token");
+  let visible = false;
+
+  document.querySelector("#agent-port").textContent = String(port);
+
+  toggle.addEventListener("click", () => {
+    visible = !visible;
+    tokenEl.textContent = visible ? token : "••••••••";
+    toggle.textContent = t(visible ? "settings.hide" : "settings.show");
+  });
+
+  document.querySelector("#copy-hooks").addEventListener("click", async () => {
+    await copyText(JSON.stringify(buildHooksConfig(port, token), null, 2));
+    flash(t("settings.copied"));
+  });
 }
 
 async function init() {
@@ -63,6 +104,8 @@ async function init() {
   // Зберігаємо лише фінальний колір, щоб не писати файл на кожен рух миші.
   customColor.addEventListener("input", () => showColor(customColor.value));
   customColor.addEventListener("change", () => save({ islandColor: customColor.value }));
+
+  await setupClaudeSection();
 }
 
 init();

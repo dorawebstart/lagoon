@@ -8,8 +8,23 @@
     "colorCustom": "Custom color",
     "comingSoon": "Soon",
     "autostart": "Start with Windows",
-    "claude": "Claude Code: port, token and hooks config",
+    "port": "Port",
+    "token": "Token",
+    "show": "Show",
+    "hide": "Hide",
+    "copyHooks": "Copy hooks config",
+    "hooksHint": "Paste it into ~/.claude/settings.json (the \"hooks\" field) and restart Claude Code. The token is a secret, don't publish it.",
+    "copied": "Copied to clipboard",
     "saved": "Saved"
+  },
+  "agent": {
+    "working": "Working…",
+    "waiting": "Claude is waiting for you",
+    "done": "Done ✓",
+    "permissionTitle": "Allow {tool}?",
+    "allow": "Allow",
+    "deny": "Deny",
+    "terminal": "In terminal"
   },
   "player": {
     "playPause": "Play / pause",

@@ -8,8 +8,23 @@
     "colorCustom": "Свій колір",
     "comingSoon": "Скоро",
     "autostart": "Запускати разом з Windows",
-    "claude": "Claude Code: порт, токен і конфіг hooks",
+    "port": "Порт",
+    "token": "Токен",
+    "show": "Показати",
+    "hide": "Сховати",
+    "copyHooks": "Скопіювати конфіг hooks",
+    "hooksHint": "Встав скопійоване в ~/.claude/settings.json (поле \"hooks\") і перезапусти Claude Code. Токен — секрет, не публікуй його.",
+    "copied": "Скопійовано в буфер обміну",
     "saved": "Збережено"
+  },
+  "agent": {
+    "working": "Працюю…",
+    "waiting": "Claude чекає на тебе",
+    "done": "Готово ✓",
+    "permissionTitle": "Дозволити {tool}?",
+    "allow": "Дозволити",
+    "deny": "Відхилити",
+    "terminal": "У терміналі"
   },
   "player": {
     "playPause": "Відтворити / пауза",

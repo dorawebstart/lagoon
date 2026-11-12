@@ -15,6 +15,10 @@
         <span class="mini-cover cover" data-cover aria-hidden="true"></span>
         <time class="island__clock" data-clock>--:--</time>
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+
+        <!-- Claude Code: крапка-індикатор і статус («Працюю…», «Bash: git status», «Готово») -->
+        <span class="agent-dot" aria-hidden="true"></span>
+        <span class="agent-status" id="agent-status" aria-live="polite"></span>
       </div>
 
       <!-- Розгорнутий стан -->
@@ -23,6 +27,21 @@
         <div class="home">
           <time class="island__big-clock" data-clock>--:--</time>
           <span class="island__date" id="date"></span>
+        </div>
+
+        <!-- Claude Code просить дозволу -->
+        <div class="ask" role="alertdialog" aria-labelledby="ask-title">
+          <div class="ask__head">
+            <span class="agent-dot" aria-hidden="true"></span>
+            <span class="ask__title" id="ask-title"></span>
+            <span class="ask__project" id="ask-project"></span>
+          </div>
+          <code class="ask__detail" id="ask-detail"></code>
+          <div class="ask__actions">
+            <button class="btn btn--ghost" data-decision="ask" data-i18n="agent.terminal"></button>
+            <button class="btn btn--deny" data-decision="deny" data-i18n="agent.deny"></button>
+            <button class="btn btn--allow" data-decision="allow" data-i18n="agent.allow"></button>
+          </div>
         </div>
 
         <!-- Грає музика: плеєр -->
