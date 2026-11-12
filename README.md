@@ -2,7 +2,7 @@
 
 > 🇺🇦 [Українська](#українська) · 🇬🇧 [English](#english)
 
-> ⚠️ **Стан: ранній розвиток.** Застосунку ще немає, репозиторій щойно створено. / **Status: early development**, nothing to install yet.
+> ⚠️ **Стан: ранній розвиток**, інсталятора ще немає — можна зібрати з коду. / **Status: early development**, no installer yet — build from source.
 
 ---
 
@@ -39,7 +39,40 @@ npm run tauri build   # інсталятор
 
 ### Підключення Claude Code
 
-_Інструкція з налаштування hooks з'явиться разом з кроком 9 плану._
+Острів отримує події від Claude Code через [HTTP-hooks](https://code.claude.com/docs/en/hooks): Claude Code сам надсилає запити на `http://127.0.0.1:47823/hook`, скрипти не потрібні.
+
+1. Запусти Lagoon → іконка в треї → **Налаштування** → **Скопіювати конфіг hooks**.
+2. Відкрий `~/.claude/settings.json` (`C:\Users\<ти>\.claude\settings.json`) і встав скопійоване поле `"hooks"` на верхній рівень. Якщо `"hooks"` там уже є — додай наші події до наявних.
+3. Перезапусти Claude Code.
+
+Що побачиш:
+
+| Подія Claude Code | Острів |
+|---|---|
+| `UserPromptSubmit` | «Працюю…» з пульсуючою крапкою |
+| `PreToolUse` | що робиться зараз, напр. «Bash: git status» |
+| `PermissionRequest` | острів розкривається сам: **Дозволити / Відхилити / У терміналі** |
+| `Notification` | пігулка світиться — Claude чекає на тебе |
+| `Stop` | «Готово ✓» на кілька секунд |
+
+Приклад конфігу (токен у тебе свій, генерується при першому запуску):
+
+```json
+{
+  "hooks": {
+    "PermissionRequest": [
+      { "hooks": [{ "type": "http", "url": "http://127.0.0.1:47823/hook",
+                    "headers": { "X-Lagoon-Token": "<твій-токен>" }, "timeout": 60 }] }
+    ],
+    "UserPromptSubmit": [ { "hooks": [{ "type": "http", "url": "http://127.0.0.1:47823/hook",
+                    "headers": { "X-Lagoon-Token": "<твій-токен>" }, "timeout": 5 }] } ]
+  }
+}
+```
+
+- Якщо на запит дозволу не відповісти за ~55 с, Claude Code спитає в терміналі, як зазвичай.
+- Якщо Lagoon не запущено, Claude Code працює як завжди (у журналі може з'явитися «hook error»).
+- Сервер слухає лише `127.0.0.1`, кожен запит перевіряється токеном. Токен — секрет: не публікуй свій `settings.json`.
 
 ### Подяка
 
@@ -80,7 +113,23 @@ npm run tauri build   # installer
 
 ### Connecting Claude Code
 
-_Hook setup instructions will be added in step 9 of the plan._
+The island receives Claude Code events via [HTTP hooks](https://code.claude.com/docs/en/hooks): Claude Code POSTs to `http://127.0.0.1:47823/hook` itself, no scripts needed.
+
+1. Start Lagoon → tray icon → **Settings** → **Copy hooks config**.
+2. Open `~/.claude/settings.json` and paste the copied `"hooks"` field at the top level (merge with existing hooks if you have any).
+3. Restart Claude Code.
+
+| Claude Code event | Island |
+|---|---|
+| `UserPromptSubmit` | "Working…" with a pulsing dot |
+| `PreToolUse` | what's happening, e.g. "Bash: git status" |
+| `PermissionRequest` | the island expands: **Allow / Deny / In terminal** |
+| `Notification` | the pill glows — Claude is waiting for you |
+| `Stop` | "Done ✓" for a few seconds |
+
+- If you don't answer a permission request within ~55 s, Claude Code asks in the terminal as usual.
+- If Lagoon isn't running, Claude Code works as usual (a "hook error" may appear in the log).
+- The server listens on `127.0.0.1` only and every request is checked against a token. Keep your token secret.
 
 ### Credits
 
