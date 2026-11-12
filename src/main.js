@@ -38,6 +38,7 @@ function applySettings(settings) {
   accent.setMode(settings.accentMode, settings.accentColor);
   applyTextColor(settings.textColor);
   applySizes(settings);
+  applySongFont(settings.songFont);
   wave.setEnabled(settings.showWave);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
@@ -75,6 +76,20 @@ function applySizes(settings) {
   root.setProperty("--lyrics-font", `${settings.lyricsFont}px`);
   // Висота рядка ≈ 1.65 × шрифт: 12 px → 20 px, як було до кроку 18
   root.setProperty("--lyrics-line", `${Math.round(settings.lyricsFont * 1.65)}px`);
+  lyrics.relayout();
+}
+
+/** Шрифти для пісні (назва, виконавець, текст пісні) — усі вбудовані в Windows. */
+const SONG_FONTS = {
+  system: '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif',
+  bahnschrift: 'Bahnschrift, "Segoe UI", sans-serif',
+  georgia: "Georgia, serif",
+};
+
+function applySongFont(font) {
+  const root = document.documentElement.style;
+  root.setProperty("--song-font", SONG_FONTS[font] ?? SONG_FONTS.system);
+  // Інший шрифт — інша висота рядка тексту пісні: перерахувати зсув
   lyrics.relayout();
 }
 

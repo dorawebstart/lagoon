@@ -33,7 +33,8 @@
     "sizeLyricsFont": "Lyrics font",
     "sizeReset": "Reset sizes",
     "wave": "Wave to the music",
-    "visibilityHint": "Hide / show the island: Ctrl+Alt+L or the tray menu. It can't appear over games in exclusive fullscreen — borderless window mode works."
+    "visibilityHint": "Hide / show the island: Ctrl+Alt+L or the tray menu. It can't appear over games in exclusive fullscreen — borderless window mode works.",
+    "songFont": "Song font"
   },
   "agent": {
     "working": "Working…",
@@ -73,5 +74,8 @@
     "sunset": "Sunset",
     "forest": "Forest",
     "lavender": "Lavender"
+  },
+  "fonts": {
+    "system": "Default"
   }
 }

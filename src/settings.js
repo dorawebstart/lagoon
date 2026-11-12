@@ -127,6 +127,12 @@ async function init() {
   setupColors(settings);
   setupSizes(settings);
 
+  const fontInputs = document.querySelectorAll('input[name="song-font"]');
+  for (const input of fontInputs) {
+    input.checked = input.value === settings.songFont;
+    input.addEventListener("change", () => save({ songFont: input.value }));
+  }
+
   const showWave = document.querySelector("#show-wave");
   showWave.checked = settings.showWave;
   showWave.addEventListener("change", () => save({ showWave: showWave.checked }));

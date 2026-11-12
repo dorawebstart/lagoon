@@ -20,6 +20,8 @@ export const DEFAULTS = {
   showWave: true,
   /** Розміри: масштаб острова (%), ширина (px) і шрифт (px) тексту пісні. */
   islandScale: 100,
+  /** Шрифт пісні: "system" | "bahnschrift" | "georgia". */
+  songFont: "system",
   lyricsWidth: 280,
   lyricsFont: 12,
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */

@@ -37,6 +37,9 @@ body {
   /* Анімації (крок 20): плавна крива без «перестрибу» — швидкий старт, м'яке гальмування */
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
 
+  /* Шрифт пісні: назва, виконавець і текст пісні (налаштування, ставить main.js) */
+  --song-font: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+
   /* Розміри (налаштування «Розмір», ставить main.js) */
   --scale: 1; /* масштаб острова: 0.9–1.3 */
   --lyrics-width: 280px; /* ширина острівця з текстом пісні */
@@ -154,6 +157,20 @@ body.edge-bottom .island {
 /* Є повзунок гучності — плеєр вищий на один рядок (вікно 200 px, вміщається) */
 .island.is-expanded.has-media.has-volume {
   height: 190px;
+}
+
+/* Хвиля увімкнена: у розкритому плеєрі вона висока (16 px) — острів вищий
+   на 10 px, а вміст підіймається, щоб хвиля не налазила на повзунок гучності */
+.island.has-wave.is-expanded.has-media {
+  height: 178px;
+}
+
+.island.has-wave.is-expanded.has-media.has-volume {
+  height: 200px;
+}
+
+.island.has-wave .player {
+  padding-bottom: 22px;
 }
 
 /* Обидва стани лежать один на одному і плавно змінюють прозорість */
@@ -351,6 +368,7 @@ body.edge-bottom .island__expanded {
 
 .player__title,
 .player__artist {
+  font-family: var(--song-font);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -612,11 +630,24 @@ body.is-dragging * {
   height: 5px;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 300ms ease;
+  transition:
+    opacity 300ms ease,
+    height 360ms var(--ease-out);
 }
 
 .island.has-wave.is-playing .wave {
   opacity: 0.9;
+}
+
+/* У розкритому плеєрі місця більше: хвиля вища, смужки на 1 px товщі.
+   Під час запиту дозволу — лишається низькою, щоб не налазити на кнопки */
+
+.island.is-expanded.has-media:not(.is-asking) .wave {
+  height: 16px;
+}
+
+.island.is-expanded.has-media:not(.is-asking) .wave i {
+  width: 3px;
 }
 
 .wave i {
@@ -708,6 +739,7 @@ body.edge-bottom .stage.is-dripping .drip-drop {
 /* ───────── Текст пісні ───────── */
 
 .lyrics {
+  font-family: var(--song-font);
   position: absolute;
   top: 6px;
   right: calc(100% + 10px); /* ліворуч від основного острова з проміжком 10 px */

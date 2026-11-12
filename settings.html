@@ -96,6 +96,15 @@
           <input type="range" id="lyrics-font" min="11" max="16" step="1" />
           <output for="lyrics-font" id="lyrics-font-out"></output>
         </label>
+        <!-- Шрифт пісні: кожну кнопку показуємо її ж шрифтом -->
+        <div class="font-row">
+          <span data-i18n="settings.songFont"></span>
+          <div class="segmented" role="radiogroup">
+            <label><input type="radio" name="song-font" value="system" /> <span data-i18n="fonts.system"></span></label>
+            <label><input type="radio" name="song-font" value="bahnschrift" /> <span style="font-family: Bahnschrift, sans-serif">Bahnschrift</span></label>
+            <label><input type="radio" name="song-font" value="georgia" /> <span style="font-family: Georgia, serif">Georgia</span></label>
+          </div>
+        </div>
         <button class="link" id="reset-sizes" data-i18n="settings.sizeReset"></button>
       </section>
 
