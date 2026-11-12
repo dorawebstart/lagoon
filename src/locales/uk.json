@@ -31,7 +31,8 @@
     "sizeScale": "Масштаб острова",
     "sizeLyricsWidth": "Ширина тексту пісні",
     "sizeLyricsFont": "Шрифт тексту пісні",
-    "sizeReset": "Скинути розміри"
+    "sizeReset": "Скинути розміри",
+    "wave": "Хвиля в такт музиці"
   },
   "agent": {
     "working": "Працюю…",

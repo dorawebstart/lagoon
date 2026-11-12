@@ -556,6 +556,49 @@ body.is-dragging * {
   cursor: grabbing !important;
 }
 
+/* ───────── Хвиля в такт музиці ───────── */
+
+/* Смужки вздовж краю, що дивиться всередину екрана: вгорі — по нижньому,
+   унизу — по верхньому. Лише прикраса: кліки проходять крізь неї */
+.wave {
+  position: absolute;
+  right: 18px;
+  bottom: 2px;
+  left: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.island.has-wave.is-playing .wave {
+  opacity: 0.9;
+}
+
+.wave i {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--user-accent, var(--accent));
+  transform: scaleY(0.08);
+  transform-origin: bottom;
+  /* Плавний перехід між кадрами (рівень приходить ~кожні 33 мс) */
+  transition: transform 70ms linear;
+}
+
+body.edge-bottom .wave {
+  top: 2px;
+  bottom: auto;
+  align-items: flex-start;
+}
+
+body.edge-bottom .wave i {
+  transform-origin: top;
+}
+
 /* ───────── Текст пісні ───────── */
 
 .lyrics {

@@ -72,6 +72,16 @@ impl MediaStore {
         let state = self.0.lock().unwrap();
         state.as_ref().map(|s| s.app_id.clone())
     }
+
+    /// Чи грає зараз музика (для хвилі в meter.rs).
+    /// `is_some_and` — є стан і в ньому is_playing == true.
+    pub fn is_playing(&self) -> bool {
+        self.0
+            .lock()
+            .unwrap()
+            .as_ref()
+            .is_some_and(|s| s.is_playing)
+    }
 }
 
 /// Команда для JS: `invoke("media_current")` — поточний стан (або null).

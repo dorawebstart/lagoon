@@ -85,13 +85,13 @@ pub async fn audio_set_volume(
 /// Це патерн RAII: ресурс захоплюємо при створенні значення, а звільняємо
 /// в `Drop` — Rust сам викличе `drop`, коли змінна `_com` вийде з області
 /// видимості (кінець функції), навіть якщо ми вийшли раніше через `?`.
-struct ComGuard {
+pub(crate) struct ComGuard {
     /// true — ініціалізація вдалася, тож треба викликати CoUninitialize.
     initialized: bool,
 }
 
 impl ComGuard {
-    fn init() -> Self {
+    pub(crate) fn init() -> Self {
         // Якщо потік уже налаштований під COM в іншому режимі, Windows поверне
         // помилку RPC_E_CHANGED_MODE — тоді COM уже працює, і прибирати нам нічого.
         let result = unsafe { CoInitializeEx(None, COINIT_MULTITHREADED) };
@@ -157,11 +157,7 @@ impl Target {
 
 /// Шукає аудіосесії плеєра; якщо не знайшли — повертає гучність системи.
 fn find_target(app_id: Option<&str>) -> WinResult<Target> {
-    // Пристрій виводу звуку за замовчуванням (динаміки чи навушники).
-    // CoCreateInstance створює COM-об'єкт за його «ідентифікатором класу».
-    let enumerator: IMMDeviceEnumerator =
-        unsafe { CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)? };
-    let device = unsafe { enumerator.GetDefaultAudioEndpoint(eRender, eMultimedia)? };
+    let device = default_device()?;
 
     if let Some(app_id) = app_id {
         let sessions = app_sessions(&device, app_id)?;
@@ -177,8 +173,21 @@ fn find_target(app_id: Option<&str>) -> WinResult<Target> {
     Ok(Target::System(endpoint))
 }
 
-/// Усі живі аудіосесії, процес яких відповідає `app_id`.
-fn app_sessions(device: &IMMDevice, app_id: &str) -> WinResult<Vec<ISimpleAudioVolume>> {
+/// Пристрій виводу звуку за замовчуванням (динаміки чи навушники).
+/// CoCreateInstance створює COM-об'єкт за його «ідентифікатором класу».
+pub(crate) fn default_device() -> WinResult<IMMDevice> {
+    let enumerator: IMMDeviceEnumerator =
+        unsafe { CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)? };
+    unsafe { enumerator.GetDefaultAudioEndpoint(eRender, eMultimedia) }
+}
+
+/// Усі живі аудіосесії, процес яких відповідає `app_id`, — як інтерфейс `T`.
+///
+/// Узагальнена (generic) функція: `T` — будь-який COM-інтерфейс сесії.
+/// Для гучності просимо `ISimpleAudioVolume`, для хвилі — `IAudioMeterInformation`
+/// (meter.rs). `T: Interface` — обмеження: T має бути COM-інтерфейсом, бо
+/// тільки його можна отримати через `cast()`.
+pub(crate) fn app_sessions<T: Interface>(device: &IMMDevice, app_id: &str) -> WinResult<Vec<T>> {
     let manager: IAudioSessionManager2 = unsafe { device.Activate(CLSCTX_ALL, None)? };
     let sessions = unsafe { manager.GetSessionEnumerator()? };
     let count = unsafe { sessions.GetCount()? };
@@ -206,7 +215,7 @@ fn app_sessions(device: &IMMDevice, app_id: &str) -> WinResult<Vec<ISimpleAudioV
             continue;
         };
         if app_matches(&wanted, &process) {
-            found.push(control.cast::<ISimpleAudioVolume>()?);
+            found.push(control.cast::<T>()?);
         }
     }
     Ok(found)

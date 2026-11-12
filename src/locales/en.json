@@ -31,7 +31,8 @@
     "sizeScale": "Island scale",
     "sizeLyricsWidth": "Lyrics width",
     "sizeLyricsFont": "Lyrics font",
-    "sizeReset": "Reset sizes"
+    "sizeReset": "Reset sizes",
+    "wave": "Wave to the music"
   },
   "agent": {
     "working": "Working…",
