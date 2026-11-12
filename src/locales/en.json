@@ -4,7 +4,6 @@
     "title": "Lagoon Settings",
     "language": "Language",
     "languageHint": "Applies instantly, no restart needed",
-    "color": "Island color",
     "colorCustom": "Custom color",
     "comingSoon": "Soon",
     "autostart": "Start with Windows",
@@ -20,7 +19,8 @@
     "positionBottom": "Bottom",
     "positionReset": "Reset position",
     "positionHint": "Drag the island with the mouse along the edge or to the other edge — it snaps to the nearest one.",
-    "saved": "Saved"
+    "saved": "Saved",
+    "theme": "Theme"
   },
   "agent": {
     "working": "Working…",
@@ -41,9 +41,13 @@
     "system": "System"
   },
   "colors": {
-    "black": "Black",
-    "graphite": "Graphite",
     "navy": "Midnight blue",
     "plum": "Plum"
+  },
+  "themes": {
+    "classic": "Classic",
+    "graphite": "Graphite",
+    "glass": "Glass",
+    "custom": "Custom"
   }
 }

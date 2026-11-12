@@ -8,6 +8,8 @@ const CHANGED_EVENT = "settings:changed";
 
 export const DEFAULTS = {
   language: "uk",
+  /** Тема острова: "classic" | "graphite" | "glass" | "custom" (свій колір — islandColor). */
+  theme: "classic",
   islandColor: "#000000",
   /** Показувати острівець з текстом пісні (кнопка 🎤 у плеєрі). */
   showLyrics: true,
@@ -33,7 +35,20 @@ export async function loadSettings() {
     const value = await store.get(key);
     if (value !== undefined && value !== null) result[key] = value;
   }
+  // До 0.3 тем не було, лише колір. Якщо тему ще не зберігали, виводимо її
+  // з кольору, щоб у тих, хто оновився, острів лишився таким самим.
+  if ((await store.get("theme")) == null) {
+    result.theme = themeFromColor(result.islandColor);
+  }
   return result;
+}
+
+/** Старий колір острова → тема: чорний — «Класична», графіт — «Графіт», інше — «Свій колір». */
+function themeFromColor(color) {
+  const value = String(color).toLowerCase();
+  if (value === "#000000") return "classic";
+  if (value === "#2c2c2e") return "graphite";
+  return "custom";
 }
 
 /**
