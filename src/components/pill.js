@@ -1,19 +1,29 @@
-// Пігулка: поки що лише годинник ГГ:ХХ.
+// Годинник і дата на острові.
 
-const formatter = new Intl.DateTimeFormat("uk-UA", {
+const timeFormatter = new Intl.DateTimeFormat("uk-UA", {
   hour: "2-digit",
   minute: "2-digit",
 });
 
+const dateFormatter = new Intl.DateTimeFormat("uk-UA", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
 /**
- * Запускає годинник в елементі `clockEl`.
+ * Запускає годинник у всіх елементах `clockEls` і дату в `dateEl`.
  * Оновлюємо рівно на початку кожної хвилини, а не кожну секунду.
  */
-export function startClock(clockEl) {
+export function startClock(clockEls, dateEl) {
   const tick = () => {
     const now = new Date();
-    clockEl.textContent = formatter.format(now);
-    clockEl.dateTime = now.toISOString();
+    const time = timeFormatter.format(now);
+    for (const el of clockEls) {
+      el.textContent = time;
+      el.dateTime = now.toISOString();
+    }
+    if (dateEl) dateEl.textContent = dateFormatter.format(now);
 
     // Скільки мілісекунд лишилося до наступної хвилини
     const msToNextMinute = 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds());

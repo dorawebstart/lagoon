@@ -6,7 +6,10 @@ use std::thread;
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{Manager, PhysicalPosition, State, WebviewWindow};
+use tauri::{Emitter, Manager, PhysicalPosition, State, WebviewWindow};
+
+/// Назва події, яку слухає фронтенд: `listen("island:hover", ...)`.
+pub const HOVER_EVENT: &str = "island:hover";
 
 /// Як часто перевіряти, де курсор. 30 мс ≈ 33 рази на секунду: досить швидко,
 /// щоб не помічати затримки, і майже не навантажує процесор.
@@ -55,31 +58,37 @@ pub fn set_hit_region(rect: Rect, region: State<HitRegion>) {
     // Замок звільняється автоматично в кінці рядка — нічого «відмикати» не треба.
 }
 
-/// Запускає фоновий потік, який вмикає click-through, коли курсор поза
-/// пігулкою, і вимикає його, коли курсор над пігулкою.
+/// Запускає фоновий потік, який стежить за курсором і:
+/// 1. вмикає click-through, коли курсор поза островом, і вимикає над ним;
+/// 2. надсилає фронтенду подію `island:hover` (true / false), щоб той
+///    розкрив або згорнув острів.
 ///
 /// Чому так: Windows вміє робити вікно або повністю «прозорим для миші»,
 /// або повністю звичайним. Тож ми самі стежимо за курсором і перемикаємо режим.
+/// А коли вікно «прозоре для миші», сторінка не отримує подій миші взагалі —
+/// тому CSS `:hover` ненадійний, і про наведення фронтенду повідомляє Rust.
 ///
 /// `window: WebviewWindow` (без `&`) — функція забирає вікно у власність,
 /// бо далі передає його в потік, який житиме довше за саму функцію.
-pub fn start_click_through(window: WebviewWindow) {
+pub fn start_cursor_watcher(window: WebviewWindow) {
     // `move` — замикання забирає змінну `window` собі (переміщує власність у потік).
     thread::spawn(move || {
-        // Останній встановлений режим. None = ще нічого не встановлювали.
-        let mut ignoring: Option<bool> = None;
+        // Останній відомий стан. None = ще нічого не встановлювали.
+        let mut last_over: Option<bool> = None;
 
         loop {
             // Якщо щось пішло не так (наприклад, вікно закривається) — вважаємо,
-            // що курсор поза пігулкою.
+            // що курсор поза островом.
             let over_island = cursor_over_island(&window).unwrap_or(false);
-            let should_ignore = !over_island;
 
-            // Кличемо Windows API лише тоді, коли режим справді змінився.
-            if ignoring != Some(should_ignore)
-                && window.set_ignore_cursor_events(should_ignore).is_ok()
+            // Робимо щось лише тоді, коли стан справді змінився.
+            if last_over != Some(over_island)
+                && window.set_ignore_cursor_events(!over_island).is_ok()
             {
-                ignoring = Some(should_ignore);
+                last_over = Some(over_island);
+                // emit — надіслати подію у фронтенд. Результат нас не цікавить:
+                // `let _ =` явно каже «ігнорую Result» (інакше буде попередження).
+                let _ = window.emit(HOVER_EVENT, over_island);
             }
 
             thread::sleep(POLL_INTERVAL);

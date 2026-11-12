@@ -1,4 +1,4 @@
-/* Прозорий фон: вікно Tauri прозоре, тож видно лише саму пігулку */
+/* Прозорий фон: вікно Tauri прозоре, тож видно лише сам острів */
 html,
 body {
   margin: 0;
@@ -13,35 +13,90 @@ body {
   justify-content: center;
   align-items: flex-start;
   font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  color: #fff;
 }
 
 .island {
   --island-color: #000;
+  /* Крива в стилі iOS: швидкий старт і дуже м'яке гальмування */
+  --ease-island: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration: 320ms;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   width: 140px;
   height: 34px;
   margin-top: 6px;
-  border-radius: 999px;
+  border-radius: 17px;
   background: var(--island-color);
-  color: #fff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
   cursor: default;
-  transition: background-color 150ms ease;
+  transition:
+    width var(--duration) var(--ease-island),
+    height var(--duration) var(--ease-island),
+    border-radius var(--duration) var(--ease-island);
 }
 
-/* Тимчасова підказка для перевірки click-through: пігулка ловить мишу.
-   Крок 4 замінить це на справжнє розкриття. */
-.island:hover {
-  --island-color: #1c1c1e;
+.island.is-expanded {
+  width: 380px;
+  height: 160px;
+  border-radius: 34px;
+}
+
+/* Обидва стани лежать один на одному і плавно змінюють прозорість */
+.island__compact,
+.island__expanded {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 180ms ease;
+}
+
+.island__expanded {
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+}
+
+.island.is-expanded .island__compact {
+  opacity: 0;
+}
+
+.island.is-expanded .island__expanded {
+  opacity: 1;
+  /* Вміст розгорнутого стану з'являється трохи пізніше, коли острів уже виріс */
+  transition-delay: 90ms;
+}
+
+.island__clock,
+.island__big-clock {
+  font-weight: 600;
+  /* Цифри однакової ширини, щоб текст не «тремтів» при зміні хвилин */
+  font-variant-numeric: tabular-nums;
 }
 
 .island__clock {
   font-size: 14px;
-  font-weight: 600;
   letter-spacing: 0.02em;
-  /* Цифри однакової ширини, щоб текст не «тремтів» при зміні хвилин */
-  font-variant-numeric: tabular-nums;
+}
+
+.island__big-clock {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.island__date {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Якщо в Windows вимкнено анімації — не анімуємо */
+@media (prefers-reduced-motion: reduce) {
+  .island,
+  .island__compact,
+  .island__expanded {
+    transition: none;
+  }
 }

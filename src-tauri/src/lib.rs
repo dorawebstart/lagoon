@@ -31,7 +31,7 @@ pub fn run() {
                 island.show()?;
                 // Тут `island` передаємо без `&`, тобто переміщуємо (move):
                 // після цього рядка змінною `island` користуватися вже не можна.
-                window::start_click_through(island);
+                window::start_cursor_watcher(island);
             }
             Ok(())
         })
