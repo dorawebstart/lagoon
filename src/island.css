@@ -34,9 +34,8 @@ body {
   --island-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--island-rim);
   --accent: #7ee787; /* еквалайзер */
 
-  /* Анімації (крок 20): швидке згортання і пружинне розкриття з малим «перестрибом» */
+  /* Анімації (крок 20): плавна крива без «перестрибу» — швидкий старт, м'яке гальмування */
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
 
   /* Розміри (налаштування «Розмір», ставить main.js) */
   --scale: 1; /* масштаб острова: 0.9–1.3 */
@@ -109,6 +108,12 @@ body.align-right .stage {
     border-radius 260ms var(--ease-out);
   /* Острів лежить вище за шар краплі (drip.js) */
   z-index: 1;
+  /* Желе «тремтить» від краю, до якого острів прикріплений */
+  transform-origin: top center;
+}
+
+body.edge-bottom .island {
+  transform-origin: bottom center;
 }
 
 /* Грає музика: згорнута пігулка ширша — є місце для обкладинки і еквалайзера */
@@ -120,9 +125,26 @@ body.align-right .stage {
   width: 380px;
   height: 160px;
   border-radius: 34px;
-  /* Розкриття: пружина з малим «перестрибом» */
-  transition-duration: 440ms;
-  transition-timing-function: var(--ease-spring);
+  /* Розкриття: плавно, без пружини, і короткий желейний трус, поки острів «осідає» */
+  transition-duration: 360ms;
+  animation: island-jelly 520ms ease-out 140ms;
+}
+
+/* Желе: ледь помітно стискається й розтягується */
+@keyframes island-jelly {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  35% {
+    transform: scale(1.02, 0.98);
+  }
+  60% {
+    transform: scale(0.992, 1.01);
+  }
+  80% {
+    transform: scale(1.003, 0.998);
+  }
 }
 
 .island.is-expanded.has-media {
@@ -149,7 +171,7 @@ body.align-right .stage {
   transform: scale(0.96) translateY(-4px);
   transition:
     opacity 200ms ease,
-    transform 360ms var(--ease-spring);
+    transform 360ms var(--ease-out);
 }
 
 body.edge-bottom .island__expanded {
@@ -705,7 +727,7 @@ body.edge-bottom .stage.is-dripping .drip-drop {
   transform-origin: right center;
   transition:
     opacity 220ms ease,
-    transform 440ms var(--ease-spring);
+    transform 440ms var(--ease-out);
 }
 
 .stage.show-lyrics .lyrics {
@@ -975,6 +997,10 @@ body.edge-bottom .stage.is-dripping .drip-drop {
   .lyrics__track,
   .lyrics__line {
     transition: none;
+  }
+  .island,
+  .island.is-expanded {
+    animation: none;
   }
   .island__expanded,
   body.edge-bottom .island__expanded {
