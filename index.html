@@ -10,16 +10,51 @@
 
   <body>
     <div class="island" id="island">
-      <!-- Згорнутий стан: лише годинник -->
+      <!-- Згорнутий стан: годинник; коли грає музика — ще обкладинка і еквалайзер -->
       <div class="island__compact">
+        <span class="mini-cover cover" data-cover aria-hidden="true"></span>
         <time class="island__clock" data-clock>--:--</time>
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       </div>
 
-      <!-- Розгорнутий стан: поки великий годинник і дата; далі тут буде плеєр -->
+      <!-- Розгорнутий стан -->
       <div class="island__expanded">
-        <time class="island__big-clock" data-clock>--:--</time>
-        <span class="island__date" id="date"></span>
-        <span class="island__now-playing" id="now-playing" hidden></span>
+        <!-- Нічого не грає: великий годинник і дата -->
+        <div class="home">
+          <time class="island__big-clock" data-clock>--:--</time>
+          <span class="island__date" id="date"></span>
+        </div>
+
+        <!-- Грає музика: плеєр -->
+        <div class="player">
+          <div class="player__top">
+            <span class="player__cover cover" data-cover aria-hidden="true"></span>
+            <div class="player__meta">
+              <div class="player__title" id="track-title"></div>
+              <div class="player__artist" id="track-artist"></div>
+            </div>
+            <span class="eq eq--big" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </div>
+
+          <div class="player__progress">
+            <span class="player__time" id="time-elapsed">0:00</span>
+            <div class="player__bar"><div class="player__bar-fill" id="bar-fill"></div></div>
+            <span class="player__time" id="time-left">0:00</span>
+          </div>
+
+          <div class="player__controls">
+            <button class="ctrl" data-action="previous" data-i18n-label="player.previous">
+              <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z" /></svg>
+            </button>
+            <button class="ctrl ctrl--main" data-action="playPause" id="play-pause" data-i18n-label="player.playPause">
+              <svg class="icon-play" viewBox="0 0 24 24"><path d="M7 4.5v15L19.5 12z" /></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" /></svg>
+            </button>
+            <button class="ctrl" data-action="next" data-i18n-label="player.next">
+              <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z" /></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </body>

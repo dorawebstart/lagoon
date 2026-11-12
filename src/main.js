@@ -1,9 +1,9 @@
 import { startClock, setClockLocale } from "./components/pill.js";
 import { trackHitRegion } from "./components/hit-region.js";
 import { setupExpand } from "./components/expand.js";
+import { setupPlayer } from "./components/player.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
-import { watchMedia, renderNowPlaying } from "./components/player.js";
 
 const island = document.querySelector("#island");
 
@@ -17,14 +17,8 @@ function applySettings(settings) {
 startClock(document.querySelectorAll("[data-clock]"), document.querySelector("#date"));
 trackHitRegion(island);
 setupExpand(island);
+setupPlayer(island);
 
 loadSettings().then(applySettings);
 // Змінили щось у вікні налаштувань — застосовуємо одразу, без перезапуску
 onSettingsChanged(applySettings);
-
-const nowPlaying = document.querySelector("#now-playing");
-watchMedia((state) => {
-  // Повний стан видно в консолі DevTools (правий клік → Inspect у dev-режимі)
-  console.log("media:update", state && { ...state, thumbnail: state.thumbnail?.slice(0, 40) });
-  renderNowPlaying(nowPlaying, state);
-});

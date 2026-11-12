@@ -11,6 +11,11 @@
     "claude": "Claude Code: port, token and hooks config",
     "saved": "Saved"
   },
+  "player": {
+    "playPause": "Play / pause",
+    "previous": "Previous track",
+    "next": "Next track"
+  },
   "colors": {
     "black": "Black",
     "graphite": "Graphite",
