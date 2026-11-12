@@ -15,6 +15,11 @@
     "copyHooks": "Copy hooks config",
     "hooksHint": "Paste it into ~/.claude/settings.json (the \"hooks\" field) and restart Claude Code. The token is a secret, don't publish it.",
     "copied": "Copied to clipboard",
+    "position": "Island position",
+    "positionTop": "Top",
+    "positionBottom": "Bottom",
+    "positionReset": "Reset position",
+    "positionHint": "Drag the island with the mouse along the edge or to the other edge — it snaps to the nearest one.",
     "saved": "Saved"
   },
   "agent": {

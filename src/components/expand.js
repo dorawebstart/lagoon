@@ -4,22 +4,26 @@
 //
 // Крім наведення, острів можна «закріпити» розкритим (pin) — наприклад,
 // поки Claude Code чекає дозволу. Тоді він не згортається, навіть якщо курсор пішов.
+//
+// Поки острів перетягують мишею (drag.js), розкриття призупинено (suspend):
+// острів згорнутий, а після перетягування (resume) знову реагує як завжди.
 import { listen } from "@tauri-apps/api/event";
 
 /** Через скільки мс після відходу курсора острів згортається. */
 const COLLAPSE_DELAY = 400;
 
 /**
- * @returns {{ pin: () => void, unpin: () => void }}
+ * @returns {{ pin: () => void, unpin: () => void, suspend: () => void, resume: () => void }}
  */
 export function setupExpand(island) {
   let collapseTimer = null;
   let hovered = false;
   let pinned = false;
+  let suspended = false;
 
   const expand = () => {
     clearTimeout(collapseTimer);
-    island.classList.add("is-expanded");
+    if (!suspended) island.classList.add("is-expanded");
   };
 
   const collapseLater = () => {
@@ -44,6 +48,15 @@ export function setupExpand(island) {
     unpin() {
       pinned = false;
       if (!hovered) collapseLater();
+    },
+    suspend() {
+      suspended = true;
+      clearTimeout(collapseTimer);
+      island.classList.remove("is-expanded");
+    },
+    resume() {
+      suspended = false;
+      if (pinned || hovered) expand();
     },
   };
 }

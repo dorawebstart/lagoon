@@ -1,15 +1,14 @@
-// window.rs — усе, що стосується вікна-острова: позиція на екрані,
-// click-through, а згодом і зміна розміру.
+// window.rs — вікно-острів: click-through, наведення і вікно налаштувань.
+// Позиція острова на екрані та перетягування — у position.rs.
 
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, State, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder,
-};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+
+use crate::position;
 
 /// Label вікна налаштувань (його згадує capabilities/default.json).
 pub const SETTINGS_LABEL: &str = "settings";
@@ -41,7 +40,7 @@ pub fn open_settings(app: &AppHandle) {
     let result =
         WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("settings.html".into()))
             .title("Lagoon")
-            .inner_size(440.0, 640.0)
+            .inner_size(440.0, 760.0)
             .resizable(false)
             .maximizable(false)
             .center()
@@ -59,6 +58,9 @@ pub const HOVER_EVENT: &str = "island:hover";
 /// Як часто перевіряти, де курсор. 30 мс ≈ 33 рази на секунду: досить швидко,
 /// щоб не помічати затримки, і майже не навантажує процесор.
 const POLL_INTERVAL: Duration = Duration::from_millis(30);
+
+/// Під час перетягування — частіше, щоб вікно плавно йшло за курсором.
+const DRAG_INTERVAL: Duration = Duration::from_millis(10);
 
 /// Прямокутник у CSS-пікселях відносно лівого верхнього кута вікна —
 /// саме в таких одиницях його віддає `getBoundingClientRect()` у JS.
@@ -122,6 +124,15 @@ pub fn start_cursor_watcher(window: WebviewWindow) {
         let mut last_over: Option<bool> = None;
 
         loop {
+            // Тягнемо острів мишею: рухом вікна займається position.rs, а
+            // click-through і наведення не чіпаємо, щоб не перервати перетягування.
+            if position::drag_tick(&window) {
+                // Після перетягування стан наведення треба перевірити заново.
+                last_over = None;
+                thread::sleep(DRAG_INTERVAL);
+                continue;
+            }
+
             // Якщо щось пішло не так (наприклад, вікно закривається) — вважаємо,
             // що курсор поза островом.
             let over_island = cursor_over_island(&window).unwrap_or(false);
@@ -156,38 +167,4 @@ fn cursor_over_island(window: &WebviewWindow) -> tauri::Result<bool> {
     // копіюємо Rect і відпускаємо замок, не тримаючи його довше, ніж треба.
     let region = *window.state::<HitRegion>().0.lock().unwrap();
     Ok(region.contains(x, y))
-}
-
-/// Ставить вікно по центру верхнього краю основного монітора.
-///
-/// - `window: &WebviewWindow` — позичаємо вікно (borrowing): функція лише
-///   керує ним, але не забирає у власність, тож після виклику вікно
-///   залишається доступним тому, хто його передав.
-/// - `-> tauri::Result<()>` — функція або успішна (`Ok(())`, де `()` означає
-///   «нічого не повертаємо»), або повертає помилку (`Err(...)`).
-pub fn place_top_center(window: &WebviewWindow) -> tauri::Result<()> {
-    // `?` після виклику: якщо там помилка — одразу повертаємо її з нашої
-    // функції; якщо успіх — дістаємо значення і йдемо далі.
-    //
-    // primary_monitor() повертає Option<Monitor>: монітор може бути (Some)
-    // або ні (None) — наприклад, у дуже рідкісних випадках без дисплея.
-    let monitor = match window.primary_monitor()? {
-        Some(monitor) => monitor,
-        None => return Ok(()), // немає монітора — просто нічого не робимо
-    };
-
-    // Робоча область = екран мінус панель задач. Якщо панель задач
-    // угорі, острів стане під нею, а не поверх неї.
-    let area = monitor.work_area();
-    let window_size = window.outer_size()?;
-
-    // Розміри — беззнакові u32, координати — знакові i32 (на другому
-    // моніторі ліворуч x може бути від'ємним). `as i32` — явне перетворення
-    // типу: Rust не робить таких перетворень сам.
-    let free_space = area.size.width as i32 - window_size.width as i32;
-    let x = area.position.x + free_space / 2;
-    let y = area.position.y;
-
-    window.set_position(PhysicalPosition::new(x, y))?;
-    Ok(())
 }

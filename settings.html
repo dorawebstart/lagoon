@@ -48,6 +48,16 @@
       </section>
 
       <section class="field">
+        <h2 data-i18n="settings.position"></h2>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="edge" value="top" /> <span data-i18n="settings.positionTop"></span></label>
+          <label><input type="radio" name="edge" value="bottom" /> <span data-i18n="settings.positionBottom"></span></label>
+        </div>
+        <button class="link" id="reset-position" data-i18n="settings.positionReset"></button>
+        <p class="hint" data-i18n="settings.positionHint"></p>
+      </section>
+
+      <section class="field">
         <h2>Claude Code</h2>
         <div class="row">
           <span data-i18n="settings.port"></span>

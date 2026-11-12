@@ -5,6 +5,7 @@ import { setupPlayer } from "./components/player.js";
 import { setupVolume } from "./components/volume.js";
 import { setupAgent } from "./components/agent.js";
 import { setupLyrics } from "./components/lyrics.js";
+import { setupDrag } from "./components/drag.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -17,6 +18,7 @@ const expander = setupExpand(island);
 setupPlayer(island);
 setupVolume(island);
 const agent = setupAgent(island, expander);
+setupDrag(island, expander);
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
