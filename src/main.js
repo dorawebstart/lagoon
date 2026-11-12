@@ -8,6 +8,7 @@ import { setupLyrics } from "./components/lyrics.js";
 import { setupDrag } from "./components/drag.js";
 import { setupAccent } from "./components/accent.js";
 import { setupWave } from "./components/wave.js";
+import { setupDrip } from "./components/drip.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -22,6 +23,7 @@ const agent = setupAgent(island, expander);
 setupDrag(island, expander);
 const accent = setupAccent();
 const wave = setupWave(island);
+setupDrip(island, document.querySelector("#stage"));
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),

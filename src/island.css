@@ -34,6 +34,10 @@ body {
   --island-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--island-rim);
   --accent: #7ee787; /* еквалайзер */
 
+  /* Анімації (крок 20): швидке згортання і пружинне розкриття з малим «перестрибом» */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+
   /* Розміри (налаштування «Розмір», ставить main.js) */
   --scale: 1; /* масштаб острова: 0.9–1.3 */
   --lyrics-width: 280px; /* ширина острівця з текстом пісні */
@@ -87,10 +91,6 @@ body.align-right .stage {
 }
 
 .island {
-  /* Крива в стилі iOS: швидкий старт і дуже м'яке гальмування */
-  --ease-island: cubic-bezier(0.32, 0.72, 0, 1);
-  --duration: 320ms;
-
   position: relative;
   width: 140px;
   height: 34px;
@@ -100,10 +100,20 @@ body.align-right .stage {
   box-shadow: var(--island-shadow);
   overflow: hidden;
   cursor: default;
+  /* Згортання (і зміна ширини, коли з'явилась пісня): швидко, без пружини.
+     Перехід бере криву з того стану, У ЯКИЙ переходимо, тож для розкриття
+     нижче в .is-expanded задана інша — пружинна */
   transition:
-    width var(--duration) var(--ease-island),
-    height var(--duration) var(--ease-island),
-    border-radius var(--duration) var(--ease-island);
+    width 260ms var(--ease-out),
+    height 260ms var(--ease-out),
+    border-radius 260ms var(--ease-out);
+  /* Позиція «стейджу» вище за шар краплі (drip.js) */
+  z-index: 1;
+  transform-origin: top center;
+}
+
+body.edge-bottom .island {
+  transform-origin: bottom center;
 }
 
 /* Грає музика: згорнута пігулка ширша — є місце для обкладинки і еквалайзера */
@@ -115,6 +125,27 @@ body.align-right .stage {
   width: 380px;
   height: 160px;
   border-radius: 34px;
+  /* Розкриття: пружина з малим «перестрибом» і короткий желейний трус */
+  transition-duration: 440ms;
+  transition-timing-function: var(--ease-spring);
+  animation: island-jelly 520ms ease-out 140ms;
+}
+
+/* Желе: ледь помітно стискається й розтягується, поки «осідає» */
+@keyframes island-jelly {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  35% {
+    transform: scale(1.02, 0.98);
+  }
+  60% {
+    transform: scale(0.992, 1.01);
+  }
+  80% {
+    transform: scale(1.003, 0.998);
+  }
 }
 
 .island.is-expanded.has-media {
@@ -131,12 +162,21 @@ body.align-right .stage {
 .island__expanded {
   position: absolute;
   inset: 0;
-  transition: opacity 180ms ease;
+  transition: opacity 100ms ease;
 }
 
+/* Розкритий вміст «виринає»: з 96 % і на кілька пікселів ближче до краю */
 .island__expanded {
   opacity: 0;
   pointer-events: none;
+  transform: scale(0.96) translateY(-4px);
+  transition:
+    opacity 200ms ease,
+    transform 360ms var(--ease-spring);
+}
+
+body.edge-bottom .island__expanded {
+  transform: scale(0.96) translateY(4px);
 }
 
 .island.is-expanded .island__compact {
@@ -146,8 +186,9 @@ body.align-right .stage {
 .island.is-expanded .island__expanded {
   opacity: 1;
   pointer-events: auto;
+  transform: none;
   /* Вміст розгорнутого стану з'являється трохи пізніше, коли острів уже виріс */
-  transition-delay: 90ms;
+  transition-delay: 120ms;
 }
 
 /* ───────── Згорнутий стан ───────── */
@@ -548,6 +589,7 @@ body.align-right .stage {
 body.lyrics-right .lyrics {
   right: auto;
   left: calc(100% + 10px);
+  transform: translateX(-14px) scale(0.94);
   transform-origin: left center;
 }
 
@@ -599,6 +641,71 @@ body.edge-bottom .wave i {
   transform-origin: top;
 }
 
+/* ───────── Крапля (drip.js) ───────── */
+
+/* Шар під островом: копія острова і крапля. «Рідкий» фільтр (#goo в index.html)
+   вмикається лише на час краплі — розмиття без відеокарти дороге */
+.drip-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.stage.is-dripping .drip-layer {
+  opacity: 1;
+  filter: url(#goo);
+}
+
+.drip-ghost,
+.drip-drop {
+  position: absolute;
+  background: var(--island-bg);
+}
+
+.drip-drop {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.stage.is-dripping .drip-drop {
+  animation: drip-down 900ms cubic-bezier(0.55, 0, 0.8, 0.4) forwards;
+}
+
+body.edge-bottom .stage.is-dripping .drip-drop {
+  animation-name: drip-up;
+}
+
+/* Крапля тягнеться, відривається і падає, зменшуючись */
+@keyframes drip-down {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(14px) scale(0.85, 1.25);
+  }
+  100% {
+    transform: translateY(80px) scale(0.6, 0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes drip-up {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    opacity: 1;
+  }
+  45% {
+    transform: translateY(-14px) scale(0.85, 1.25);
+  }
+  100% {
+    transform: translateY(-80px) scale(0.6, 0.8);
+    opacity: 0;
+  }
+}
+
 /* ───────── Текст пісні ───────── */
 
 .lyrics {
@@ -616,11 +723,12 @@ body.edge-bottom .wave i {
   /* Лише показує текст: кліки проходять крізь нього до програм під ним */
   pointer-events: none;
   opacity: 0;
-  transform: scale(0.92);
+  /* Виїжджає з-за острова: стартує ближче до нього і трохи меншим */
+  transform: translateX(14px) scale(0.94);
   transform-origin: right center;
   transition:
     opacity 220ms ease,
-    transform 320ms cubic-bezier(0.32, 0.72, 0, 1);
+    transform 440ms var(--ease-spring);
 }
 
 .stage.show-lyrics .lyrics {
@@ -641,7 +749,9 @@ body.edge-bottom .wave i {
   color: var(--island-dim); /* проспіваний і наступний — сіріші */
   white-space: nowrap;
   text-overflow: ellipsis;
-  transition: color 300ms ease;
+  transition:
+    color 300ms ease,
+    font-size 200ms ease;
 }
 
 .lyrics__line.is-current {
@@ -883,8 +993,22 @@ body.edge-bottom .wave i {
 @media (prefers-reduced-motion: reduce) {
   .island,
   .island__compact,
-  .island__expanded {
+  .island__expanded,
+  .lyrics,
+  .lyrics__track,
+  .lyrics__line {
     transition: none;
+  }
+  .island,
+  .island.is-expanded {
+    animation: none;
+  }
+  .island__expanded,
+  body.edge-bottom .island__expanded {
+    transform: none;
+  }
+  .drip-layer {
+    display: none;
   }
   .eq i,
   .agent-dot,

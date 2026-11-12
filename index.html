@@ -9,6 +9,14 @@
   </head>
 
   <body>
+    <!-- «Рідкий» фільтр для краплі (drip.js): розмиття, а потім різкий край
+         за прозорістю — близькі фігури зливаються, як краплі води -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" />
+      </filter>
+    </svg>
     <!-- Спільний контейнер: основний острів по центру, текст пісні — ліворуч від нього -->
     <div class="stage" id="stage">
     <!-- Текст пісні: три рядки, «прозорий для миші» (кліки проходять крізь нього) -->
