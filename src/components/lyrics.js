@@ -41,7 +41,9 @@ export function setupLyrics({ stage, track, toggle }) {
     const key = keyOf(state);
     songKey = key;
     setLines([]);
-    if (!state) return;
+    // Тривалість ще невідома (браузер щойно відкрив відео) — чекаємо: без неї
+    // LRCLIB не знайде пісню, а ключ зміниться, щойно тривалість з'явиться.
+    if (!state || state.durationMs <= 0) return;
 
     try {
       const result = await invoke("lyrics_get", {
