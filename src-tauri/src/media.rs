@@ -361,6 +361,15 @@ fn read_cover(reference: &IRandomAccessStreamReference) -> WinResult<String> {
 fn publish(app: &AppHandle, state: Option<MediaState>) {
     let store = app.state::<MediaStore>();
     let mut current = store.0.lock().unwrap();
+
+    // `if let (Some(a), Some(b)) = (…)` — обидва стани є (старий і новий).
+    // as_ref() дає посилання на вміст Option, нічого не забираючи.
+    if let (Some(old), Some(new)) = (current.as_ref(), state.as_ref())
+        && is_timeline_glitch(old, new)
+    {
+        return;
+    }
+
     // Порівняння працює завдяки #[derive(PartialEq)] на MediaState.
     if *current != state {
         // Лише в debug-збірці: короткий лог у термінал `npm run tauri dev`.
@@ -382,5 +391,54 @@ fn publish(app: &AppHandle, state: Option<MediaState>) {
 
         *current = state.clone();
         let _ = app.emit(UPDATE_EVENT, state);
+    }
+}
+
+/// Чи це хибне оновлення: та сама пісня, але тривалість раптом 0.
+///
+/// Firefox (YouTube, SoundCloud) інколи на мить надсилає Windows позицію й
+/// тривалість 0/0, хоча пісня грає далі. Без цієї перевірки острів ховав би
+/// прогрес-бар і текст пісні, а потім показував знову.
+/// Прямі трансляції не постраждають: у них тривалість 0 з самого початку.
+fn is_timeline_glitch(old: &MediaState, new: &MediaState) -> bool {
+    new.duration_ms == 0
+        && old.duration_ms > 0
+        && new.title == old.title
+        && new.artist == old.artist
+        && new.app_id == old.app_id
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn song(title: &str, duration_ms: i64) -> MediaState {
+        MediaState {
+            title: title.to_string(),
+            artist: "Linkin Park".to_string(),
+            app_id: "firefox.exe".to_string(),
+            duration_ms,
+            ..MediaState::default()
+        }
+    }
+
+    #[test]
+    fn ignores_zero_duration_for_same_song() {
+        let playing = song("Somewhere I Belong", 225_781);
+        assert!(is_timeline_glitch(&playing, &song("Somewhere I Belong", 0)));
+    }
+
+    #[test]
+    fn accepts_real_changes() {
+        let playing = song("Somewhere I Belong", 225_781);
+        // Інша пісня без тривалості (ще не завантажилась) — це не збій
+        assert!(!is_timeline_glitch(&playing, &song("Faint", 0)));
+        // Та сама пісня з новою позицією — звичайне оновлення
+        assert!(!is_timeline_glitch(
+            &playing,
+            &song("Somewhere I Belong", 225_781)
+        ));
+        // Пряма трансляція: тривалість 0 і була
+        assert!(!is_timeline_glitch(&song("Live", 0), &song("Live", 0)));
     }
 }

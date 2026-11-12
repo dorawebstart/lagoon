@@ -41,7 +41,9 @@ export function setupLyrics({ stage, track, toggle }) {
     const key = keyOf(state);
     songKey = key;
     setLines([]);
-    if (!state) return;
+    // Тривалість ще невідома (браузер щойно відкрив відео) — чекаємо: без неї
+    // LRCLIB не знайде пісню, а ключ зміниться, щойно тривалість з'явиться.
+    if (!state || state.durationMs <= 0) return;
 
     try {
       const result = await invoke("lyrics_get", {
@@ -60,7 +62,9 @@ export function setupLyrics({ stage, track, toggle }) {
 
   /** Перебудовує «стрічку» рядків. Порожній текст = програш, показуємо ♪. */
   function setLines(next) {
-    lines = next;
+    // Вступ до першого рядка: додаємо порожній рядок на 0:00, щоб посередині
+    // острівця був ♪, а не порожнеча з одним сірим рядком унизу.
+    lines = next.length && next[0].timeMs > 0 ? [{ timeMs: 0, text: "" }, ...next] : next;
     track.replaceChildren(
       ...lines.map((line) => {
         const row = document.createElement("div");
