@@ -2,7 +2,7 @@
 
 > 🇺🇦 [Українська](#українська) · 🇬🇧 [English](#english)
 
-> **v0.2 «Плеєр+»** — гучність, перемотка, текст пісні, позиція острова. Що нового — у [CHANGELOG](CHANGELOG.md). / Volume, seeking, lyrics, island position — see the [CHANGELOG](CHANGELOG.md).
+> **v0.3 «Стиль»** — теми й кольори, розміри, хвиля в такт музиці, анімації, `Ctrl+Alt+L` — сховати острів. Що нового — у [CHANGELOG](CHANGELOG.md). / Themes and colors, sizes, audio wave, animations, `Ctrl+Alt+L` to hide — see the [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -15,6 +15,9 @@
 - 🔊 гучність саме програми, що грає (повзунок або коліщатко миші над островом), і перемотка по прогрес-бару;
 - 🎤 синхронізований текст пісні окремим острівцем поруч (з [LRCLIB](https://lrclib.net)): щойно проспіваний, поточний і наступний рядок;
 - ↔️ острів можна перетягнути мишею вздовж краю або вниз — він «прилипає» до найближчого краю і запам'ятовує місце;
+- 🎨 теми (Класична, Графіт, Скло, свій колір), акцент з обкладинки, готові палітри, розміри й шрифт пісні;
+- 🌊 хвиля вздовж краю острова в такт музиці, плавні анімації;
+- 🙈 `Ctrl+Alt+L` або меню трею — сховати / показати острів;
 - 🤖 статус **Claude Code** і кнопки «Дозволити / Відхилити» для запитів дозволу прямо з острова;
 - 🌐 інтерфейс українською та англійською.
 
@@ -96,6 +99,9 @@ npm run tauri build   # інсталятор
 - 🔊 the volume of the playing app (slider or mouse wheel over the island) and seeking on the progress bar;
 - 🎤 synced lyrics in a separate small island next to it (from [LRCLIB](https://lrclib.net)): the previous, current and next line;
 - ↔️ drag the island along the edge or to the bottom — it snaps to the nearest edge and remembers its place;
+- 🎨 themes (Classic, Graphite, Glass, custom), accent from the album cover, palettes, sizes and song font;
+- 🌊 an audio-reactive wave along the island edge, smooth animations;
+- 🙈 `Ctrl+Alt+L` or the tray menu — hide / show the island;
 - 🤖 **Claude Code** status and Allow / Deny buttons for permission requests, right from the island;
 - 🌐 Ukrainian and English UI.
 
