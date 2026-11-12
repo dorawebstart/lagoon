@@ -277,10 +277,27 @@ body {
   text-align: right;
 }
 
+/* Обгортка смужки: вища за неї, щоб легше влучити мишею */
+.player__seek {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  height: 16px;
+  /* Від'ємні відступи: зона кліку більша, а висота рядка не змінюється */
+  margin-block: -6px;
+}
+
+.island.can-seek .player__seek {
+  cursor: pointer;
+}
+
 .player__bar {
   flex: 1;
   height: 4px;
   border-radius: 2px;
+  transition:
+    height 120ms ease,
+    border-radius 120ms ease;
   background: rgba(255, 255, 255, 0.18);
   overflow: hidden;
 }
@@ -292,6 +309,13 @@ body {
   background: #fff;
   transform: scaleX(0);
   transform-origin: left;
+}
+
+/* Можна перемотувати: при наведенні й перетягуванні смужка товщає */
+.island.can-seek .player__seek:hover .player__bar,
+.island.is-seeking .player__bar {
+  height: 6px;
+  border-radius: 3px;
 }
 
 /* Тривалість невідома (наприклад, пряма трансляція) — ховаємо прогрес */

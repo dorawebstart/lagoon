@@ -57,7 +57,10 @@
 
           <div class="player__progress">
             <span class="player__time" id="time-elapsed">0:00</span>
-            <div class="player__bar"><div class="player__bar-fill" id="bar-fill"></div></div>
+            <!-- Обгортка більша за смужку, щоб у неї легко було влучити мишею -->
+            <div class="player__seek" id="seek" data-i18n-label="player.seek">
+              <div class="player__bar"><div class="player__bar-fill" id="bar-fill"></div></div>
+            </div>
             <span class="player__time" id="time-left">0:00</span>
           </div>
 

@@ -32,6 +32,7 @@ pub fn run() {
             window::set_hit_region,
             media::media_current,
             media::media_control,
+            media::media_seek,
             audio::audio_volume,
             audio::audio_set_volume,
             agent::agent_info,
