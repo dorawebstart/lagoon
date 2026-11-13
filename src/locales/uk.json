@@ -133,5 +133,13 @@
     "estimating": "рахую час…",
     "hourMin": "{h} год {m} хв",
     "min": "{m} хв"
+  },
+  "nav": {
+    "look": "Вигляд",
+    "size": "Розмір",
+    "weather": "Погода",
+    "island": "Острів",
+    "claude": "Claude Code",
+    "general": "Загальне"
   }
 }

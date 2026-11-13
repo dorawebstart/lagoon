@@ -36,6 +36,8 @@ export const DEFAULTS = {
   weatherEnabled: true,
   /** Показувати «UA» / «EN» на 1,5 с, коли змінили мову вводу. */
   showLayout: true,
+  /** Розділ вікна налаштувань, відкритий минулого разу (бічне меню). */
+  settingsSection: "look",
   weatherCity: null,
 };
 
