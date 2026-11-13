@@ -9,12 +9,13 @@ import { setupDrag } from "./components/drag.js";
 import { setupAccent } from "./components/accent.js";
 import { setupWave } from "./components/wave.js";
 import { setupDrip } from "./components/drip.js";
+import { setupWeather } from "./components/weather.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
 const island = document.querySelector("#island");
 
-startClock(document.querySelectorAll("[data-clock]"), document.querySelector("#date"));
+startClock(document.querySelectorAll("[data-clock]"), document.querySelectorAll("#date, [data-date]"));
 trackHitRegion(island);
 const expander = setupExpand(island);
 setupPlayer(island);
@@ -24,6 +25,7 @@ setupDrag(island, expander);
 const accent = setupAccent();
 const wave = setupWave(island);
 setupDrip(island, document.querySelector("#stage"));
+const weather = setupWeather(island);
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -42,6 +44,7 @@ function applySettings(settings) {
   wave.setEnabled(settings.showWave);
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
+  weather.refresh();
 }
 
 /**

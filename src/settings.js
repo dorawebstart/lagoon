@@ -1,7 +1,7 @@
 // Вікно налаштувань: мова, тема острова, позиція, підключення Claude Code.
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { setLanguage, t } from "./i18n.js";
+import { setLanguage, getLanguage, t } from "./i18n.js";
 import { loadSettings, saveSettings } from "./settings-store.js";
 import { buildHooksConfig } from "./hooks-config.js";
 import { PALETTES } from "./palettes.js";
@@ -137,6 +137,7 @@ async function init() {
   showWave.checked = settings.showWave;
   showWave.addEventListener("change", () => save({ showWave: showWave.checked }));
   setupPosition(settings);
+  setupWeather(settings);
   await setupAutostart();
   await setupClaudeSection();
 }
@@ -266,6 +267,89 @@ function setupPosition(settings) {
   document.querySelector("#reset-position").addEventListener("click", () => {
     showEdge("top");
     save({ islandEdge: "top", islandAlign: "center", islandOffset: 0 });
+  });
+}
+
+/** Як місто показується в списку і в рядку «Місто»: «Львів, Львівська область, Україна». */
+function cityLabel(city) {
+  return [city.name, city.admin, city.country].filter(Boolean).join(", ");
+}
+
+/**
+ * Погода: перемикач, пошук міста (Open-Meteo через Rust) і «Моє розташування»
+ * (служба розташування Windows). Вибране місто зберігається в settings.json —
+ * Rust (weather.rs) одразу оновлює погоду.
+ */
+function setupWeather(settings) {
+  const enabled = document.querySelector("#weather-enabled");
+  const current = document.querySelector("#weather-city");
+  const query = document.querySelector("#city-query");
+  const results = document.querySelector("#city-results");
+  const here = document.querySelector("#weather-here");
+  const message = document.querySelector("#weather-message");
+  let searchTimer = null;
+  /** Номер запиту: відповідь на старий запит (повільний інтернет) ігноруємо. */
+  let searchId = 0;
+
+  const showCity = (city) => {
+    current.textContent = city ? cityLabel(city) : t("settings.weatherNone");
+    current.classList.toggle("is-empty", !city);
+  };
+  showCity(settings.weatherCity);
+  enabled.checked = settings.weatherEnabled;
+  enabled.addEventListener("change", () => save({ weatherEnabled: enabled.checked }));
+
+  const choose = (city) => {
+    showCity(city);
+    results.replaceChildren();
+    query.value = "";
+    message.textContent = "";
+    save({ weatherCity: city });
+  };
+
+  const search = async () => {
+    const text = query.value.trim();
+    const id = ++searchId;
+    if (text.length < 2) {
+      results.replaceChildren();
+      return;
+    }
+    try {
+      const cities = await invoke("weather_search_city", { query: text, language: getLanguage() });
+      if (id !== searchId) return;
+      results.replaceChildren(
+        ...cities.map((city) => {
+          const button = document.createElement("button");
+          button.className = "city-result";
+          button.setAttribute("role", "option");
+          button.textContent = cityLabel(city);
+          button.addEventListener("click", () => choose(city));
+          return button;
+        }),
+      );
+      message.textContent = cities.length ? "" : t("settings.weatherNotFound");
+    } catch (error) {
+      console.warn("weather_search_city:", error);
+      if (id === searchId) message.textContent = t("settings.weatherFailed");
+    }
+  };
+
+  // Шукаємо, коли користувач на 400 мс перестав друкувати, а не на кожну літеру
+  query.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(search, 400);
+  });
+
+  here.addEventListener("click", async () => {
+    message.textContent = t("settings.weatherLocating");
+    try {
+      const { latitude, longitude } = await invoke("weather_locate");
+      // Назви місця служба розташування не дає — підписуємо «Моє розташування»
+      choose({ name: t("weather.myLocation"), latitude, longitude });
+    } catch (error) {
+      console.warn("weather_locate:", error);
+      message.textContent = t(error === "denied" ? "settings.weatherDenied" : "settings.weatherFailed");
+    }
   });
 }
 

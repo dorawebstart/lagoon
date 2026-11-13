@@ -2,7 +2,7 @@
 
 let locale = "uk-UA";
 let clockEls = [];
-let dateEl = null;
+let dateEls = [];
 let timer = null;
 
 function render() {
@@ -12,23 +12,22 @@ function render() {
     el.textContent = time;
     el.dateTime = now.toISOString();
   }
-  if (dateEl) {
-    dateEl.textContent = new Intl.DateTimeFormat(locale, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }).format(now);
-  }
+  const date = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(now);
+  for (const el of dateEls) el.textContent = date;
   return now;
 }
 
 /**
- * Запускає годинник у всіх елементах `clocks` і дату в `date`.
+ * Запускає годинник у всіх елементах `clocks` і дату в усіх `dates`.
  * Оновлюємо рівно на початку кожної хвилини, а не кожну секунду.
  */
-export function startClock(clocks, date) {
+export function startClock(clocks, dates) {
   clockEls = [...clocks];
-  dateEl = date;
+  dateEls = [...dates];
 
   const tick = () => {
     const now = render();
