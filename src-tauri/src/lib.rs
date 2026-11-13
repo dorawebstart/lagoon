@@ -25,6 +25,14 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Лише одна копія Lagoon. Плагін має йти ПЕРШИМ: коли програму
+        // запускають вдруге (ярлик, автозапуск), нова копія одразу
+        // завершується, а в уже запущеній викликається це замикання.
+        // Аргументи й робоча папка нам не потрібні — тому `_`.
+        // Острів могли сховати (Ctrl+Alt+L) — тоді показуємо його.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            visibility::show(app);
+        }))
         // Автозапуск разом з Windows (запис у реєстрі: HKCU, розділ Run)
         .plugin(tauri_plugin_autostart::Builder::new().build())
         // Плагін, що зберігає налаштування у JSON-файлі
@@ -56,6 +64,11 @@ pub fn run() {
         .setup(|app| {
             // handle() — «ручка» застосунку, яку можна копіювати і передавати.
             let handle = app.handle().clone();
+
+            // Автозапуск увімкнений, але запис у реєстрі міг лишитися зі старим
+            // шляхом (інша папка встановлення, стара збірка) — тоді Windows
+            // нічого не запускає. Перезаписуємо шлях на поточний lagoon.exe.
+            refresh_autostart(&handle);
 
             // Гаряча клавіша Ctrl+Alt+L — сховати / показати острів.
             // with_handler: замикання викликається на кожне натискання і
@@ -151,3 +164,28 @@ pub fn run() {
         // run повертає Result; expect зупинить програму з повідомленням, якщо сталася помилка
         .expect("не вдалося запустити застосунок Tauri");
 }
+
+/// Якщо автозапуск увімкнений — записує в реєстр шлях до поточного lagoon.exe.
+///
+/// `#[cfg(not(debug_assertions))]` — функція компілюється лише в release-збірці
+/// (інсталятор). У dev-збірці (`npm run tauri dev`) запис не чіпаємо, інакше
+/// автозапуск почав би вказувати на тимчасову dev-версію в папці проєкту.
+#[cfg(not(debug_assertions))]
+fn refresh_autostart(app: &tauri::AppHandle) {
+    // ManagerExt — трейт плагіна: додає застосунку метод autolaunch()
+    use tauri_plugin_autostart::ManagerExt;
+
+    let autolaunch = app.autolaunch();
+    // is_enabled лише перевіряє, що запис є; enable перезаписує його шлях.
+    // `matches!(значення, Ok(true))` — true, лише якщо вдалося і запис є.
+    // `&& let Err(..)` — друга умова: перезаписати не вдалося → пишемо в лог.
+    if matches!(autolaunch.is_enabled(), Ok(true))
+        && let Err(error) = autolaunch.enable()
+    {
+        eprintln!("автозапуск: {error}");
+    }
+}
+
+/// У dev-збірці — нічого не робимо (див. release-варіант вище).
+#[cfg(debug_assertions)]
+fn refresh_autostart(_app: &tauri::AppHandle) {}
