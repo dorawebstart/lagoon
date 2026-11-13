@@ -40,7 +40,8 @@ pub fn open_settings(app: &AppHandle) {
     let result =
         WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("settings.html".into()))
             .title("Lagoon")
-            .inner_size(440.0, 760.0)
+            // Бічне меню ліворуч (крок 27): ширше, але нижче, ніж один довгий список
+            .inner_size(620.0, 560.0)
             .resizable(false)
             .maximizable(false)
             .center()

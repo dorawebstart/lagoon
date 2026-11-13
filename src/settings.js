@@ -1,6 +1,7 @@
 // Вікно налаштувань: мова, тема острова, позиція, підключення Claude Code.
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getVersion } from "@tauri-apps/api/app";
 import { setLanguage, getLanguage, t } from "./i18n.js";
 import { loadSettings, saveSettings } from "./settings-store.js";
 import { buildHooksConfig } from "./hooks-config.js";
@@ -90,10 +91,49 @@ async function setupClaudeSection() {
   });
 }
 
+/** Розділи бічного меню (data-nav / data-section у settings.html). */
+const SECTIONS = ["look", "size", "weather", "island", "claude", "general"];
+
+/**
+ * Бічне меню: показує секції вибраного розділу, решту ховає.
+ * Вибраний розділ запам'ятовується (settingsSection) — наступного разу
+ * вікно відкриється на ньому.
+ */
+function setupNav(settings) {
+  const buttons = document.querySelectorAll("[data-nav]");
+  const sections = document.querySelectorAll("[data-section]");
+  const title = document.querySelector("#section-title");
+
+  const show = (id) => {
+    for (const button of buttons) {
+      if (button.dataset.nav === id) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    }
+    for (const section of sections) section.hidden = section.dataset.section !== id;
+    // data-i18n — щоб заголовок перекладався разом з усім при зміні мови
+    title.dataset.i18n = `nav.${id}`;
+    title.textContent = t(`nav.${id}`);
+    document.querySelector(".settings").scrollTop = 0;
+  };
+
+  show(SECTIONS.includes(settings.settingsSection) ? settings.settingsSection : SECTIONS[0]);
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      show(button.dataset.nav);
+      // Без «Збережено»: це не налаштування острова, а лише місце у вікні
+      saveSettings({ settingsSection: button.dataset.nav });
+    });
+  }
+}
+
 async function init() {
   const settings = await loadSettings();
 
   applyLanguage(settings.language);
+  setupNav(settings);
+  getVersion()
+    .then((version) => (document.querySelector("#app-version").textContent = `Lagoon ${version}`))
+    .catch(() => {});
   for (const input of languageInputs) input.checked = input.value === settings.language;
   showTheme(settings.theme);
   showColor(settings.islandColor);

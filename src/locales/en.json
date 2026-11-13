@@ -133,5 +133,13 @@
     "estimating": "estimating…",
     "hourMin": "{h} h {m} min",
     "min": "{m} min"
+  },
+  "nav": {
+    "look": "Appearance",
+    "size": "Size",
+    "weather": "Weather",
+    "island": "Island",
+    "claude": "Claude Code",
+    "general": "General"
   }
 }
