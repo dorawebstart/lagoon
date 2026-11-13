@@ -31,6 +31,10 @@ export const DEFAULTS = {
   islandEdge: "top",
   islandAlign: "center",
   islandOffset: 0,
+  /** Погода (Open-Meteo): увімкнена і місто { name, admin, country, latitude, longitude }
+      або null, поки не обрали (крок 24). Читає й src-tauri/src/weather.rs. */
+  weatherEnabled: true,
+  weatherCity: null,
 };
 
 let storePromise = null;

@@ -12,6 +12,7 @@ mod position;
 mod settings;
 mod tray;
 mod visibility;
+mod weather;
 mod window;
 
 // `use` імпортує трейти. Трейт — це набір методів, які тип «вміє»
@@ -44,6 +45,7 @@ pub fn run() {
         .manage(position::LayoutState::default())
         .manage(meter::WaveEnabled::default())
         .manage(visibility::IslandVisible::default())
+        .manage(weather::WeatherState::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -56,6 +58,8 @@ pub fn run() {
             lyrics::lyrics_get,
             position::island_placement,
             position::island_drag_start,
+            weather::weather_current,
+            weather::weather_search_city,
             agent::agent_info,
             agent::agent_respond
         ])
@@ -97,6 +101,9 @@ pub fn run() {
             // Рівень звуку для «хвилі» (працює лише поки вона увімкнена і грає музика)
             meter::start(handle.clone());
 
+            // Погода (Open-Meteo): раз на 30 хв, лише коли острів видно і місто обране
+            weather::start(handle.clone());
+
             // HTTP-сервер для hooks Claude Code (127.0.0.1:47823).
             // manage() тут, а не в Builder, бо серверу потрібен уже готовий
             // застосунок (AppHandle) і сховище налаштувань з токеном.
@@ -108,6 +115,9 @@ pub fn run() {
             // бо воно житиме довше, ніж функція setup.
             let listener_handle = handle.clone();
             app.listen(settings::CHANGED_EVENT, move |event| {
+                // Могли змінити місто чи вимкнути погоду — хай перевірить одразу
+                // (сама вирішить, чи треба питати сервер)
+                weather::settings_changed(&listener_handle);
                 // payload() — JSON-рядок; serde_json перетворює його на нашу структуру.
                 // `if let A && let B` — обидві умови мають «збігтися»: JSON розібрався (Ok)
                 // і в ньому є мова (Some). Інакше просто нічого не робимо.
