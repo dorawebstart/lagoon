@@ -45,7 +45,8 @@
     "weatherDenied": "Windows blocks location access. Turn it on: Settings → Privacy → Location → \"Allow desktop apps to access your location\".",
     "weatherFailed": "Something went wrong — check your connection and try again.",
     "weatherNotFound": "Nothing found",
-    "weatherHint": "Data by Open-Meteo, no sign-up. Only a rounded location (~1 km) is sent; the city is stored on this computer only."
+    "weatherHint": "Data by Open-Meteo, no sign-up. Only a rounded location (~1 km) is sent; the city is stored on this computer only.",
+    "showLayout": "Show keyboard layout changes (UA / EN)"
   },
   "agent": {
     "working": "Working…",

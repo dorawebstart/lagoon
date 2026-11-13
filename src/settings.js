@@ -138,6 +138,10 @@ async function init() {
   showWave.addEventListener("change", () => save({ showWave: showWave.checked }));
   setupPosition(settings);
   setupWeather(settings);
+
+  const showLayout = document.querySelector("#show-layout");
+  showLayout.checked = settings.showLayout;
+  showLayout.addEventListener("change", () => save({ showLayout: showLayout.checked }));
   await setupAutostart();
   await setupClaudeSection();
 }

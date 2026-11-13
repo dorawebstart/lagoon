@@ -6,6 +6,7 @@
 mod agent;
 mod audio;
 mod battery;
+mod keyboard;
 mod lyrics;
 mod media;
 mod meter;
@@ -110,6 +111,9 @@ pub fn run() {
 
             // Батарея ноутбука: Windows сама повідомляє про зміни заряду
             battery::start(&handle);
+
+            // Розкладка клавіатури: подія при зміні мови вводу (лише читаємо мову)
+            keyboard::start(handle.clone());
 
             // HTTP-сервер для hooks Claude Code (127.0.0.1:47823).
             // manage() тут, а не в Builder, бо серверу потрібен уже готовий
