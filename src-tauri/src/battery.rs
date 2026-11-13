@@ -12,6 +12,7 @@
 // Якщо батареї немає (стаціонарний ПК) — нічого не надсилаємо, острів її не показує.
 
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -47,7 +48,13 @@ pub struct BatteryState {
     /// Швидкість заряду в мВт, згладжена: миттєва «стрибає» щосекунди.
     charge_rate: Mutex<Option<f64>>,
     last: Mutex<Option<BatteryInfo>>,
+    /// Коли востаннє надсилали подію — щоб зміна лише часу не перемальовувала
+    /// острів щосекунди (на зарядці Windows оновлює звіт дуже часто).
+    last_sent_at: Mutex<Option<Instant>>,
 }
+
+/// Якщо змінився лише час (відсоток і зарядка ті самі) — не частіше, ніж раз на хвилину.
+const MINUTES_ONLY_INTERVAL: Duration = Duration::from_secs(60);
 
 /// `invoke("battery_current")` → `BatteryInfo | null`.
 #[tauri::command]
@@ -61,10 +68,14 @@ pub fn start(app: &AppHandle) {
     if read_power_status().is_none() {
         return;
     }
+    // AggregateBattery — «усі батареї разом» (у деяких ноутбуків їх дві).
+    // Створюємо один раз і тримаємо в стані: і для підписки, і для звітів —
+    // щоб не створювати новий WinRT-об'єкт на кожну подію.
+    let battery = Battery::AggregateBattery().ok();
+    *app.state::<BatteryState>().battery.lock().unwrap() = battery.clone();
     refresh(app);
 
-    // AggregateBattery — «усі батареї разом» (у деяких ноутбуків їх дві)
-    let Ok(battery) = Battery::AggregateBattery() else {
+    let Some(battery) = battery else {
         return;
     };
     let handle = app.clone();
@@ -76,9 +87,8 @@ pub fn start(app: &AppHandle) {
         refresh(&handle);
         Ok(())
     });
-    if battery.ReportUpdated(&handler).is_ok() {
-        *app.state::<BatteryState>().battery.lock().unwrap() = Some(battery);
-    }
+    // Помилку підписки ігноруємо: тоді заряд просто не оновлюватиметься сам
+    let _ = battery.ReportUpdated(&handler);
 }
 
 /// Читає поточний стан і надсилає фронтенду, якщо щось змінилося.
@@ -86,15 +96,44 @@ fn refresh(app: &AppHandle) {
     let state = app.state::<BatteryState>();
     let info = read_info(&state);
     let mut last = state.last.lock().unwrap();
-    if *last != info {
-        *last = info.clone();
-        let _ = app.emit(UPDATE_EVENT, info);
+    if *last == info {
+        return;
+    }
+    let mut sent_at = state.last_sent_at.lock().unwrap();
+    let recently = sent_at.is_some_and(|time| time.elapsed() < MINUTES_ONLY_INTERVAL);
+    if recently && only_minutes_changed(last.as_ref(), info.as_ref()) {
+        return;
+    }
+    *last = info.clone();
+    *sent_at = Some(Instant::now());
+    let _ = app.emit(UPDATE_EVENT, info);
+}
+
+/// Чи відрізняються два стани лише хвилинами (відсоток і зарядка ті самі).
+fn only_minutes_changed(before: Option<&BatteryInfo>, now: Option<&BatteryInfo>) -> bool {
+    match (before, now) {
+        (Some(a), Some(b)) => {
+            a.percent == b.percent && a.plugged == b.plugged && a.charging == b.charging
+        }
+        _ => false,
+    }
+}
+
+/// Округлення часу: до години — хвилини, далі — по 5 хв («1 год 20 хв»,
+/// а не «1 год 23 хв», що змінюється щохвилини). Оцінка все одно приблизна.
+fn round_minutes(minutes: u32) -> u32 {
+    if minutes < 60 {
+        minutes
+    } else {
+        (minutes + 2) / 5 * 5
     }
 }
 
 fn read_info(state: &BatteryState) -> Option<BatteryInfo> {
     let power = read_power_status()?;
-    let report = read_report();
+    // clone() об'єкта WinRT — лише ще одне посилання на той самий об'єкт (дешево)
+    let battery = state.battery.lock().unwrap().clone();
+    let report = battery.as_ref().and_then(read_report);
     let charging = power.plugged && report.as_ref().is_some_and(|r| r.charging);
 
     let minutes = if charging {
@@ -116,7 +155,7 @@ fn read_info(state: &BatteryState) -> Option<BatteryInfo> {
         percent: power.percent,
         plugged: power.plugged,
         charging,
-        minutes,
+        minutes: minutes.map(round_minutes),
     })
 }
 
@@ -160,8 +199,8 @@ struct Report {
     full_mwh: Option<i32>,
 }
 
-fn read_report() -> Option<Report> {
-    let report = Battery::AggregateBattery().ok()?.GetReport().ok()?;
+fn read_report(battery: &Battery) -> Option<Report> {
+    let report = battery.GetReport().ok()?;
     // Числа приходять як IReference<i32> — «число, якого може не бути».
     // `.ok()` після кожного кроку: немає значення → None.
     let number = |value: windows::core::Result<windows::Foundation::IReference<i32>>| {
@@ -249,6 +288,35 @@ mod tests {
             minutes_to_full(Some(50_000), Some(50_000), Some(10_000.0)),
             Some(0)
         );
+    }
+
+    #[test]
+    fn minutes_are_rounded_after_an_hour() {
+        assert_eq!(round_minutes(48), 48);
+        assert_eq!(round_minutes(83), 85);
+        assert_eq!(round_minutes(81), 80);
+        assert_eq!(round_minutes(251), 250);
+    }
+
+    #[test]
+    fn detects_minutes_only_change() {
+        let a = BatteryInfo {
+            percent: 41,
+            plugged: true,
+            charging: true,
+            minutes: Some(80),
+        };
+        let b = BatteryInfo {
+            minutes: Some(85),
+            ..a.clone()
+        };
+        let c = BatteryInfo {
+            percent: 42,
+            ..a.clone()
+        };
+        assert!(only_minutes_changed(Some(&a), Some(&b)));
+        assert!(!only_minutes_changed(Some(&a), Some(&c)));
+        assert!(!only_minutes_changed(None, Some(&a)));
     }
 
     #[test]

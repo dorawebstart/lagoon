@@ -35,18 +35,20 @@ const LOCALE_NAME_MAX: usize = 85;
 /// Запускає фоновий потік, що стежить за мовою вводу.
 pub fn start(app: AppHandle) {
     thread::spawn(move || {
-        // Мова на старті: запам'ятовуємо, але не показуємо
-        let mut last = current_language();
+        // Мова на старті: запам'ятовуємо, але не показуємо.
+        // Порівнюємо лише числовий код мови — це дешево; назву ("UA")
+        // шукаємо тільки тоді, коли код змінився.
+        let mut last = current_language_id();
         loop {
             if !visibility::is_visible(&app) {
                 thread::sleep(HIDDEN_POLL);
                 // Острів знову покажуть — без «спалаху» за пропущене
-                last = current_language();
+                last = current_language_id();
                 continue;
             }
-            let now = current_language();
+            let now = current_language_id();
             if now.is_some() && now != last {
-                if let Some(name) = &now {
+                if let Some(name) = now.and_then(language_name) {
                     let _ = app.emit(LAYOUT_EVENT, name);
                 }
                 last = now;
@@ -56,11 +58,10 @@ pub fn start(app: AppHandle) {
     });
 }
 
-/// Коротка назва мови вводу активного вікна ("UA", "EN"…) або `None`,
-/// якщо активного вікна немає (наприклад, робочий стіл блокування).
-fn current_language() -> Option<String> {
-    // unsafe: виклики Windows API. Вони нічого не пишуть у нашу пам'ять,
-    // окрім буфера для назви, розмір якого ми передаємо.
+/// Код мови вводу (LANGID) активного вікна або `None`, якщо активного вікна
+/// немає (наприклад, екран блокування).
+fn current_language_id() -> Option<u32> {
+    // unsafe: виклики Windows API; вони лише читають стан системи.
     unsafe {
         let window = GetForegroundWindow();
         if window.0.is_null() {
@@ -72,18 +73,21 @@ fn current_language() -> Option<String> {
         // HKL — «ручка» розкладки; молодші 16 біт — код мови (LANGID).
         // `as usize` — дивимось на вказівник як на число; `& 0xFFFF` — молодші біти.
         let language_id = (layout.0 as usize & 0xFFFF) as u32;
-        if language_id == 0 {
-            return None;
-        }
-        let mut buffer = [0u16; LOCALE_NAME_MAX];
-        // Повертає кількість символів разом з нульовим у кінці; 0 — помилка
-        let length = LCIDToLocaleName(language_id, Some(&mut buffer), 0);
-        if length <= 1 {
-            return None;
-        }
-        let locale = String::from_utf16_lossy(&buffer[..(length - 1) as usize]);
-        Some(short_name(&locale))
+        (language_id != 0).then_some(language_id)
     }
+}
+
+/// Код мови → коротка назва ("UA", "EN"…).
+fn language_name(language_id: u32) -> Option<String> {
+    let mut buffer = [0u16; LOCALE_NAME_MAX];
+    // unsafe: Windows пише назву в наш буфер; його розмір вона знає зі зрізу.
+    // Повертає кількість символів разом з нульовим у кінці; 0 — помилка.
+    let length = unsafe { LCIDToLocaleName(language_id, Some(&mut buffer), 0) };
+    if length <= 1 {
+        return None;
+    }
+    let locale = String::from_utf16_lossy(&buffer[..(length - 1) as usize]);
+    Some(short_name(&locale))
 }
 
 /// "uk-UA" → "UA", "en-US" → "EN", "pl-PL" → "PL".
@@ -114,6 +118,6 @@ mod tests {
     #[test]
     #[ignore]
     fn live_layout() {
-        println!("мова: {:?}", current_language());
+        println!("мова: {:?}", current_language_id().and_then(language_name));
     }
 }
