@@ -5,6 +5,7 @@
 // Без цих рядків файли просто ігнорувалися б.
 mod agent;
 mod audio;
+mod battery;
 mod lyrics;
 mod media;
 mod meter;
@@ -46,6 +47,7 @@ pub fn run() {
         .manage(meter::WaveEnabled::default())
         .manage(visibility::IslandVisible::default())
         .manage(weather::WeatherState::default())
+        .manage(battery::BatteryState::default())
         // Команди, які можна викликати з JS через invoke
         .invoke_handler(tauri::generate_handler![
             window::set_hit_region,
@@ -61,6 +63,7 @@ pub fn run() {
             weather::weather_current,
             weather::weather_search_city,
             weather::weather_locate,
+            battery::battery_current,
             agent::agent_info,
             agent::agent_respond
         ])
@@ -104,6 +107,9 @@ pub fn run() {
 
             // Погода (Open-Meteo): раз на 30 хв, лише коли острів видно і місто обране
             weather::start(handle.clone());
+
+            // Батарея ноутбука: Windows сама повідомляє про зміни заряду
+            battery::start(&handle);
 
             // HTTP-сервер для hooks Claude Code (127.0.0.1:47823).
             // manage() тут, а не в Builder, бо серверу потрібен уже готовий

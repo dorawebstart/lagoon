@@ -120,5 +120,17 @@
       "snow": "Snow",
       "thunder": "Thunderstorm"
     }
+  },
+  "battery": {
+    "title": "Battery",
+    "charging": "Charging",
+    "onBattery": "On battery",
+    "onPower": "Plugged in",
+    "low": "Low battery",
+    "left": "{d} left",
+    "toFull": "full in {d}",
+    "estimating": "estimating…",
+    "hourMin": "{h} h {m} min",
+    "min": "{m} min"
   }
 }

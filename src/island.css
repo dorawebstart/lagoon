@@ -124,9 +124,14 @@ body.edge-bottom .island {
   width: 200px;
 }
 
-/* Нічого не грає, але є погода: пігулка ширша — годинник і погода поруч */
-.island.has-weather:not(.has-media, .is-expanded) {
+/* Нічого не грає, але є погода чи батарея: пігулка ширша — усе поруч з годинником */
+.island.has-weather:not(.has-media, .is-expanded),
+.island.has-battery:not(.has-media, .is-expanded) {
   width: 176px;
+}
+
+.island.has-weather.has-battery:not(.has-media, .is-expanded) {
+  width: 236px;
 }
 
 .island.is-expanded {
@@ -273,6 +278,25 @@ body.edge-bottom .island__expanded {
 .mini-weather .weather-icon {
   width: 17px;
   height: 17px;
+}
+
+/* Батарея в пігулці: так само лише коли нічого не грає */
+.mini-battery {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.island.has-battery:not(.has-media) .mini-battery {
+  display: flex;
+}
+
+.mini-battery .battery-icon {
+  width: 20px;
+  height: 20px;
 }
 
 /* ───────── Обкладинка ───────── */
@@ -1279,6 +1303,149 @@ body.edge-bottom .stage.is-dripping .drip-drop {
 
 .weather-icon--thunder {
   color: #f5b942;
+}
+
+/* ───────── Батарея (battery.js) ───────── */
+
+/* Іконка: контур кольором тексту, заповнення — за станом */
+.battery-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.battery-shell {
+  stroke: var(--island-muted);
+}
+
+.battery-fill {
+  stroke: none;
+  fill: var(--island-fg);
+}
+
+.battery-icon--charging .battery-fill {
+  fill: #7ee787;
+}
+
+.battery-icon--low .battery-fill {
+  fill: #f07a7a;
+}
+
+/* Блискавка поверх заповнення: обводка кольору фону, щоб її було видно */
+.battery-bolt-outline {
+  stroke: var(--island-bg);
+  stroke-width: 3.4;
+}
+
+.battery-bolt {
+  stroke: var(--island-fg);
+  stroke-width: 1.5;
+}
+
+/* Плитка «Батарея»: лише на ноутбуці; тоді плиток чотири */
+.tile--battery {
+  display: none;
+}
+
+.island.has-battery .tile--battery {
+  display: flex;
+}
+
+.island.has-battery .weather__tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.island.has-battery .tile {
+  padding: 8px 8px;
+}
+
+.tile__battery {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tile__battery .battery-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.tile__percent {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile__percent[data-level="charging"] {
+  color: #7ee787;
+}
+
+.tile__percent[data-level="low"] {
+  color: #f07a7a;
+}
+
+/* «до повного 1 год 20 хв» може не влізти в один рядок — переносимо */
+.tile__sub {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--island-muted);
+}
+
+/* Сповіщення: пігулка на 3 с ширшає й вищає, показує два рядки.
+   Стоїть нижче за правила Claude Code, тож переважає їх */
+.notice {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.island.has-notice:not(.is-expanded) {
+  width: 290px;
+  height: 52px;
+  border-radius: 26px;
+}
+
+.island.has-notice .island__compact {
+  justify-content: flex-start;
+  padding: 0 18px;
+}
+
+.island.has-notice .island__compact > :not(.notice) {
+  display: none;
+}
+
+.island.has-notice .island__compact .notice {
+  display: flex;
+}
+
+.notice .battery-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+
+.notice__text {
+  min-width: 0;
+}
+
+.notice__title {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notice__sub {
+  font-size: 12px;
+  color: var(--island-muted);
+}
+
+.island[data-notice="low"].has-notice .notice__title {
+  color: #f07a7a;
 }
 
 /* Якщо в Windows вимкнено анімації — не анімуємо */

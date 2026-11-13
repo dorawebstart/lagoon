@@ -31,6 +31,10 @@
         <time class="island__clock" data-clock>--:--</time>
         <!-- Погода: іконка й температура (лише коли нічого не грає, weather.js) -->
         <span class="mini-weather" id="mini-weather"></span>
+        <!-- Батарея: іконка й відсоток (лише коли нічого не грає, battery.js) -->
+        <span class="mini-battery" id="mini-battery"></span>
+        <!-- Сповіщення на 3 с: зарядку під'єднали / від'єднали, низький заряд -->
+        <span class="notice" id="notice" aria-live="polite"></span>
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
 
         <!-- Claude Code: крапка-індикатор і статус («Працюю…», «Bash: git status», «Готово») -->
@@ -92,6 +96,15 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18a7 7 0 0 1 14 0M3 18h18M12 4v4M9.5 5.5L12 8l2.5-2.5" /></svg>
                 <span data-sunset></span>
               </span>
+            </div>
+            <!-- Видно лише на ноутбуці (клас has-battery) -->
+            <div class="tile tile--battery" id="battery-tile">
+              <span class="tile__label" data-i18n="battery.title"></span>
+              <span class="tile__battery">
+                <span data-battery-icon></span>
+                <span class="tile__percent" data-battery-percent></span>
+              </span>
+              <span class="tile__sub" data-battery-time></span>
             </div>
           </div>
         </div>
