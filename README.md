@@ -2,7 +2,7 @@
 
 > 🇺🇦 [Українська](#українська) · 🇬🇧 [English](#english)
 
-> **v0.3 «Стиль»** — теми й кольори, розміри, хвиля в такт музиці, анімації, `Ctrl+Alt+L` — сховати острів. Що нового — у [CHANGELOG](CHANGELOG.md). / Themes and colors, sizes, audio wave, animations, `Ctrl+Alt+L` to hide — see the [CHANGELOG](CHANGELOG.md).
+> **v0.4 «Інфо»** — погода, батарея ноутбука, розкладка клавіатури, налаштування з бічним меню. Що нового — у [CHANGELOG](CHANGELOG.md). / Weather, laptop battery, keyboard layout, settings sidebar — see the [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -18,6 +18,8 @@
 - 🎨 теми (Класична, Графіт, Скло, свій колір), акцент з обкладинки, готові палітри, розміри й шрифт пісні;
 - 🌊 хвиля вздовж краю острова в такт музиці, плавні анімації;
 - 🙈 `Ctrl+Alt+L` або меню трею — сховати / показати острів;
+- 🌤 погода (Open-Meteo, без ключів) у пігулці й окремою панеллю: вітер з компасом, вологість, схід і захід сонця;
+- 🔋 заряд батареї ноутбука і скільки часу лишилось; ⌨️ «UA / EN» при зміні розкладки;
 - 🤖 статус **Claude Code** і кнопки «Дозволити / Відхилити» для запитів дозволу прямо з острова;
 - 🌐 інтерфейс українською та англійською.
 
@@ -102,6 +104,8 @@ npm run tauri build   # інсталятор
 - 🎨 themes (Classic, Graphite, Glass, custom), accent from the album cover, palettes, sizes and song font;
 - 🌊 an audio-reactive wave along the island edge, smooth animations;
 - 🙈 `Ctrl+Alt+L` or the tray menu — hide / show the island;
+- 🌤 weather (Open-Meteo, no keys) in the pill and a separate panel: wind compass, humidity, sunrise / sunset;
+- 🔋 laptop battery and time left; ⌨️ "UA / EN" when the keyboard layout changes;
 - 🤖 **Claude Code** status and Allow / Deny buttons for permission requests, right from the island;
 - 🌐 Ukrainian and English UI.
 
