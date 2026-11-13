@@ -10,6 +10,7 @@ import { setupAccent } from "./components/accent.js";
 import { setupWave } from "./components/wave.js";
 import { setupDrip } from "./components/drip.js";
 import { setupWeather } from "./components/weather.js";
+import { setupBattery } from "./components/battery.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -26,6 +27,7 @@ const accent = setupAccent();
 const wave = setupWave(island);
 setupDrip(island, document.querySelector("#stage"));
 const weather = setupWeather(island);
+const battery = setupBattery(island);
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -45,6 +47,7 @@ function applySettings(settings) {
   lyrics.setEnabled(settings.showLyrics);
   agent.refresh();
   weather.refresh();
+  battery.refresh();
 }
 
 /**
