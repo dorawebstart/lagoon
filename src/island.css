@@ -299,6 +299,35 @@ body.edge-bottom .island__expanded {
   height: 20px;
 }
 
+/* Мова вводу (keyboard.js): мітка на 1,5 с. Ширина пігулки та сама —
+   на час спалаху мітка займає місце погоди, батареї й еквалайзера */
+.layout-badge {
+  display: none;
+  padding: 1px 6px;
+  border: 1px solid var(--island-track);
+  border-radius: 6px;
+  background: var(--island-faint);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  animation: layout-pop 180ms var(--ease-out);
+}
+
+.island.has-layout .island__compact .layout-badge {
+  display: block;
+}
+
+.island.has-layout .island__compact :is(.mini-weather, .mini-battery, .eq) {
+  display: none;
+}
+
+@keyframes layout-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
 /* ───────── Обкладинка ───────── */
 
 .cover {
@@ -1471,6 +1500,7 @@ body.edge-bottom .stage.is-dripping .drip-drop {
     display: none;
   }
   .eq i,
+  .layout-badge,
   .agent-dot,
   .island[data-agent="attention"] {
     animation: none !important;

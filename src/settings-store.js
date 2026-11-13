@@ -34,6 +34,8 @@ export const DEFAULTS = {
   /** Погода (Open-Meteo): увімкнена і місто { name, admin, country, latitude, longitude }
       або null, поки не обрали (крок 24). Читає й src-tauri/src/weather.rs. */
   weatherEnabled: true,
+  /** Показувати «UA» / «EN» на 1,5 с, коли змінили мову вводу. */
+  showLayout: true,
   weatherCity: null,
 };
 

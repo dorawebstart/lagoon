@@ -11,6 +11,7 @@ import { setupWave } from "./components/wave.js";
 import { setupDrip } from "./components/drip.js";
 import { setupWeather } from "./components/weather.js";
 import { setupBattery } from "./components/battery.js";
+import { setupKeyboard } from "./components/keyboard.js";
 import { setLanguage, getLocale } from "./i18n.js";
 import { loadSettings, onSettingsChanged } from "./settings-store.js";
 
@@ -28,6 +29,7 @@ const wave = setupWave(island);
 setupDrip(island, document.querySelector("#stage"));
 const weather = setupWeather(island);
 const battery = setupBattery(island);
+const keyboard = setupKeyboard(island);
 const lyrics = setupLyrics({
   stage: document.querySelector("#stage"),
   track: document.querySelector("#lyrics-track"),
@@ -45,6 +47,7 @@ function applySettings(settings) {
   applySongFont(settings.songFont);
   wave.setEnabled(settings.showWave);
   lyrics.setEnabled(settings.showLyrics);
+  keyboard.setEnabled(settings.showLayout);
   agent.refresh();
   weather.refresh();
   battery.refresh();
