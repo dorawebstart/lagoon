@@ -1,5 +1,15 @@
 # Що нового / Changelog
 
+## Невипущене
+
+### Виправлено
+- Повторний запуск (ярлик, автозапуск) більше не відкриває ще один острів — показує вже запущений.
+- Автозапуск із Windows знову працює, якщо в реєстрі лишився старий шлях до програми: на старті шлях оновлюється.
+
+### Fixed (EN)
+- Launching Lagoon again no longer opens a second island — it shows the running one.
+- Autostart works again when the registry still points to an old path: the path is refreshed on start.
+
 ## v0.3.0 «Стиль» — 12.11.2026
 
 ### Нове
