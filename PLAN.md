@@ -441,27 +441,34 @@ git_project_lagoon/
 ├─ .github/workflows/ (ci.yml, release.yml)
 ├─ .gitignore  LICENSE  README.md  PLAN.md  CLAUDE.md
 ├─ docs/ (screenshot.png, QA.md)
+├─ CHANGELOG.md
 ├─ index.html              # сторінка острова
 ├─ settings.html           # сторінка налаштувань
 ├─ vite.config.js
 ├─ src/                    # frontend
 │  ├─ main.js  island.css  i18n.js  settings.js  settings.css
-│  ├─ settings-store.js  hooks-config.js
+│  ├─ settings-store.js  hooks-config.js  palettes.js
 │  ├─ components/ (pill.js, expand.js, hit-region.js, player.js, agent.js,
-│  │               volume.js, lyrics.js, drag.js)
+│  │               volume.js, lyrics.js, drag.js, accent.js, wave.js, drip.js,
+│  │               weather.js, battery.js, keyboard.js)
 │  └─ locales/ (uk.json, en.json)
 └─ src-tauri/              # backend (Rust)
    ├─ Cargo.toml  tauri.conf.json  capabilities/default.json  icons/
    └─ src/
       ├─ main.rs  lib.rs
-      ├─ window.rs   # click-through, наведення, вікно налаштувань
-      ├─ position.rs # верх/низ, зсув, прив'язка до краю, перетягування
-      ├─ tray.rs     # іконка в треї
-      ├─ settings.rs # мова і позиція з settings.json
-      ├─ media.rs    # GSMTC: що грає, кнопки, перемотка
-      ├─ audio.rs    # гучність програми (Core Audio)
-      ├─ lyrics.rs   # текст пісні (LRCLIB), кеш
-      └─ agent.rs    # HTTP-сервер для hooks
+      ├─ window.rs     # click-through, наведення, вікно налаштувань
+      ├─ position.rs   # верх/низ, зсув, прив'язка до краю, перетягування
+      ├─ visibility.rs # сховати / показати острів (Ctrl+Alt+L)
+      ├─ tray.rs       # іконка в треї
+      ├─ settings.rs   # мова і позиція з settings.json
+      ├─ media.rs      # GSMTC: що грає, кнопки, перемотка
+      ├─ audio.rs      # гучність програми (Core Audio)
+      ├─ meter.rs      # рівень звуку для хвилі
+      ├─ lyrics.rs     # текст пісні (LRCLIB), кеш
+      ├─ weather.rs    # погода (Open-Meteo), кеш, пошук міста
+      ├─ battery.rs    # заряд і час роботи батареї
+      ├─ keyboard.rs   # розкладка клавіатури
+      └─ agent.rs      # HTTP-сервер для hooks
 ```
 
 ## 8. Відкриті питання (вирішимо по ходу)
@@ -476,3 +483,48 @@ git_project_lagoon/
 - ~~Де показувати текст пісні?~~ Вирішено (крок 13): окремим острівцем ліворуч від основного, три рядки.
 - Чи потрібна взагалі інтеграція зі Spotify Web API (вхід через акаунт), чи досить можливостей Windows.
 - Підпис інсталятора (зараз SmartScreen попереджає «невідомий видавець»).
+
+## 9. Характеристики (13.11.2026, v0.4.0)
+
+### Програма для користувача
+| Що | Значення |
+|---|---|
+| Інсталятор `Lagoon_0.4.0_x64-setup.exe` | **1,8 МБ** |
+| Інсталятор `Lagoon_0.4.0_x64_en-US.msi` | 2,7 МБ |
+| Встановлена програма (`%LOCALAPPDATA%\Lagoon`) | **5,7 МБ** (`lagoon.exe` 5,6 МБ + `uninstall.exe`) |
+| Дані програми (`%LOCALAPPDATA%\com.dorawebstart.lagoon`) | ~65 МБ: кеш WebView2 (`EBWebView`) 65,4 МБ, тексти пісень 0,13 МБ, погода < 1 КБ |
+| Налаштування (`%APPDATA%\com.dorawebstart.lagoon`) | < 1 КБ |
+| Пам'ять у спокої (lagoon.exe + процеси WebView2) | **≈ 110 МБ** (109,8 МБ; v0.3.1 — 109,2 МБ) |
+| Процесор у спокої | **≈ 73 мс за 30 с** (≈ 0,25 % одного ядра) |
+| Система | Windows 10 / 11 x64; WebView2 (є в Windows 11, ставиться інсталятором на Windows 10) |
+| Мережа | LRCLIB (тексти пісень), Open-Meteo (погода), обидва без ключів; hooks Claude Code — лише `127.0.0.1` |
+
+Як міряли пам'ять і процесор — розділ 6, «Порядок кроків 0.4».
+
+### Код
+| Що | Значення |
+|---|---|
+| Файлів у репозиторії | 77 (≈ 1 МБ разом зі скриншотом) |
+| Rust (`src-tauri/src`) | 16 файлів, **≈ 4 000 рядків**; найбільші: `position.rs` 619, `weather.rs` 576, `media.rs` 454, `lyrics.rs` 422 |
+| JavaScript (`src`) | 21 файл, ≈ 2 250 рядків |
+| CSS | 2 файли, ≈ 2 050 рядків |
+| HTML | 2 сторінки (`index.html`, `settings.html`), ≈ 390 рядків |
+| Переклади | `uk.json`, `en.json` |
+| Тести Rust | 39 (`cargo test`) + ручні live-тести з `#[ignore]` |
+| Залежності Rust | 14 прямих (з них 4 плагіни Tauri), 512 пакетів у `Cargo.lock` разом із Tauri |
+| Залежності npm | 3 (`@tauri-apps/api`, `plugin-autostart`, `plugin-store`) + 2 для збірки (`@tauri-apps/cli`, `vite`) |
+| Історія | 38 комітів у `main`, 37 змерджених PR, 5 релізів (v0.1.0, v0.2.0, v0.3.0, v0.3.1, v0.4.0) |
+
+### Місце на диску в розробника
+| Папка | Розмір | Що це |
+|---|---|---|
+| Код (без збірок) | ≈ 1 МБ | те, що в git |
+| `.git` | 2,2 МБ | історія |
+| `node_modules` | 38 МБ | Vite і Tauri CLI |
+| `src-tauri/target/debug` | **13,7 ГБ** | збірки для `tauri dev` і `cargo test` |
+| `src-tauri/target/release` | 1,6 ГБ | збірки для інсталятора |
+| **Разом основна папка** | **≈ 15,3 ГБ** | без `.claude\worktrees` |
+| `.claude\worktrees\…` | ≈ 21,5 ГБ | копія для сесій Claude Code; власний `target` (debug 18,3 ГБ + release 3,2 ГБ) |
+| **Разом `C:\git_project\git_project_lagoon`** | **≈ 36 ГБ** | |
+
+> Майже все місце займають проміжні файли Rust у `target` (Tauri, `windows`, `tokio` компілюються з нуля для debug і release окремо). Їх можна безпечно видалити `cargo clean` у `src-tauri` — наступна збірка просто буде довшою (~3–5 хв). Код і історію це не зачіпає.
