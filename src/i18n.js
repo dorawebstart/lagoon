@@ -35,6 +35,10 @@ export function setLanguage(language) {
   for (const el of document.querySelectorAll("[data-i18n]")) {
     el.textContent = t(el.dataset.i18n);
   }
+  // Підказка в порожньому полі вводу
+  for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  }
   // Підписи для кнопок-іконок: підказка при наведенні і текст для екранних читалок
   for (const el of document.querySelectorAll("[data-i18n-label]")) {
     const label = t(el.dataset.i18nLabel);

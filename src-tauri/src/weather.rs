@@ -121,6 +121,52 @@ pub async fn weather_search_city(query: String, language: String) -> Result<Vec<
         .map_err(|error| error.to_string())
 }
 
+/// Координати для «Моє розташування» (вже округлені).
+#[derive(Serialize)]
+pub struct Location {
+    pub latitude: f64,
+    pub longitude: f64,
+}
+
+/// `invoke("weather_locate")` → `{ latitude, longitude }` або помилка
+/// `"denied"` (доступ до розташування вимкнено в Параметрах Windows).
+///
+/// Служба розташування Windows (WinRT `Geolocator`): Wi-Fi поруч / GPS.
+/// Викликається лише після кліку користувача. Координати одразу округлюємо
+/// до ~1 км — точніші ніде не зберігаються.
+#[tauri::command]
+pub async fn weather_locate() -> Result<Location, String> {
+    use windows::Devices::Geolocation::{GeolocationAccessStatus, Geolocator};
+
+    // Чи дозволено «класичним програмам» бачити розташування
+    let access = Geolocator::RequestAccessAsync()
+        .map_err(|error| error.to_string())?
+        .await
+        .map_err(|error| error.to_string())?;
+    if access != GeolocationAccessStatus::Allowed {
+        return Err("denied".to_string());
+    }
+
+    let locator = Geolocator::new().map_err(|error| error.to_string())?;
+    let position = locator
+        .GetGeopositionAsync()
+        .map_err(|error| error.to_string())?
+        .await
+        .map_err(|error| error.to_string())?;
+    // Geoposition → Geocoordinate → Geopoint → BasicGeoposition (звичайна
+    // структура з полями Latitude / Longitude). Кожен крок може не вдатися,
+    // тому `?` після кожного.
+    let point = position
+        .Coordinate()
+        .and_then(|coordinate| coordinate.Point())
+        .and_then(|point| point.Position())
+        .map_err(|error| error.to_string())?;
+    Ok(Location {
+        latitude: round_to_km(point.Latitude),
+        longitude: round_to_km(point.Longitude),
+    })
+}
+
 // ───────────── Фонова задача ─────────────
 
 /// Запускає фонову задачу оновлення погоди.
@@ -379,6 +425,11 @@ fn round_coordinate(value: f64) -> String {
     format!("{value:.2}")
 }
 
+/// Те саме, але числом: 50.4567 → 50.46 (для «Моє розташування»).
+fn round_to_km(value: f64) -> f64 {
+    (value * 100.0).round() / 100.0
+}
+
 /// Чи погода ще не застаріла (молодша за 3 години).
 fn is_fresh(weather: &Weather, now: u64) -> bool {
     now.saturating_sub(weather.updated_at) < MAX_AGE.as_secs()
@@ -474,6 +525,8 @@ mod tests {
         assert_eq!(round_coordinate(50.450_123), "50.45");
         assert_eq!(round_coordinate(30.523_9), "30.52");
         assert_eq!(round_coordinate(-0.127_6), "-0.13");
+        assert_eq!(round_to_km(50.456_7), 50.46);
+        assert_eq!(round_to_km(-0.127_6), -0.13);
     }
 
     #[test]

@@ -109,6 +109,26 @@
       </section>
 
       <section class="field">
+        <h2 data-i18n="settings.weather"></h2>
+        <label class="row switch-row">
+          <span data-i18n="settings.weatherShow"></span>
+          <input type="checkbox" class="switch" id="weather-enabled" />
+        </label>
+        <div class="row">
+          <span data-i18n="settings.weatherCity"></span>
+          <strong class="city-current" id="weather-city"></strong>
+        </div>
+        <!-- Пошук міста: результати — кнопки під полем (settings.js) -->
+        <div class="city-search">
+          <input type="search" id="city-query" class="text-input" autocomplete="off" data-i18n-placeholder="settings.weatherSearch" />
+          <div class="city-results" id="city-results" role="listbox"></div>
+        </div>
+        <button class="link" id="weather-here" data-i18n="settings.weatherHere"></button>
+        <p class="hint" id="weather-message" aria-live="polite"></p>
+        <p class="hint" data-i18n="settings.weatherHint"></p>
+      </section>
+
+      <section class="field">
         <h2 data-i18n="settings.position"></h2>
         <div class="segmented" role="radiogroup">
           <label><input type="radio" name="edge" value="top" /> <span data-i18n="settings.positionTop"></span></label>

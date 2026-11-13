@@ -60,6 +60,7 @@ pub fn run() {
             position::island_drag_start,
             weather::weather_current,
             weather::weather_search_city,
+            weather::weather_locate,
             agent::agent_info,
             agent::agent_respond
         ])

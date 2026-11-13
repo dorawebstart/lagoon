@@ -124,6 +124,11 @@ body.edge-bottom .island {
   width: 200px;
 }
 
+/* Нічого не грає, але є погода: пігулка ширша — годинник і погода поруч */
+.island.has-weather:not(.has-media, .is-expanded) {
+  width: 176px;
+}
+
 .island.is-expanded {
   width: 380px;
   height: 160px;
@@ -150,23 +155,33 @@ body.edge-bottom .island {
   }
 }
 
-.island.is-expanded.has-media {
-  height: 168px;
+/* --tabs-room — місце для вкладок «Плеєр / Погода» над плеєром (weather.js
+   ставить has-tabs, коли є і погода, і музика). Під час запиту дозволу вкладок немає */
+.island {
+  --tabs-room: 0px;
 }
 
-/* Є повзунок гучності — плеєр вищий на один рядок (вікно 200 px, вміщається) */
+.island.has-tabs:not(.is-asking) {
+  --tabs-room: 22px;
+}
+
+.island.is-expanded.has-media {
+  height: calc(168px + var(--tabs-room));
+}
+
+/* Є повзунок гучності — плеєр вищий на один рядок */
 .island.is-expanded.has-media.has-volume {
-  height: 190px;
+  height: calc(190px + var(--tabs-room));
 }
 
 /* Хвиля увімкнена: у розкритому плеєрі вона висока (16 px) — острів вищий
    на 10 px, а вміст підіймається, щоб хвиля не налазила на повзунок гучності */
 .island.has-wave.is-expanded.has-media {
-  height: 178px;
+  height: calc(178px + var(--tabs-room));
 }
 
 .island.has-wave.is-expanded.has-media.has-volume {
-  height: 200px;
+  height: calc(200px + var(--tabs-room));
 }
 
 .island.has-wave .player {
@@ -239,6 +254,25 @@ body.edge-bottom .island__expanded {
 .island:not(.has-media) .island__compact .mini-cover,
 .island:not(.has-media) .island__compact .eq {
   display: none;
+}
+
+/* Погода в пігулці: лише коли вона є і нічого не грає */
+.mini-weather {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.island.has-weather:not(.has-media) .mini-weather {
+  display: flex;
+}
+
+.mini-weather .weather-icon {
+  width: 17px;
+  height: 17px;
 }
 
 /* ───────── Обкладинка ───────── */
@@ -346,7 +380,7 @@ body.edge-bottom .island__expanded {
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
-  padding: 18px 22px 12px;
+  padding: calc(18px + var(--tabs-room)) 22px 12px;
 }
 
 .player__top {
@@ -642,11 +676,11 @@ body.is-dragging * {
 /* У розкритому плеєрі місця більше: хвиля вища, смужки на 1 px товщі.
    Під час запиту дозволу — лишається низькою, щоб не налазити на кнопки */
 
-.island.is-expanded.has-media:not(.is-asking) .wave {
+.island.is-expanded.has-media:not(.is-asking, .show-weather) .wave {
   height: 16px;
 }
 
-.island.is-expanded.has-media:not(.is-asking) .wave i {
+.island.is-expanded.has-media:not(.is-asking, .show-weather) .wave i {
   width: 3px;
 }
 
@@ -1020,6 +1054,233 @@ body.edge-bottom .stage.is-dripping .drip-drop {
   background: #2f9e5b;
 }
 
+/* ───────── Погода (weather.js) ───────── */
+
+/* Панель погоди замість плеєра / великого годинника */
+.island.show-weather .home,
+.island.show-weather .player,
+.weather {
+  display: none;
+}
+
+.island.show-weather:not(.is-asking) .weather {
+  display: flex;
+}
+
+/* Висота розкритого острова з погодою — однакова з музикою і без неї.
+   Більше класів, ніж у правил плеєра вище, — тож ця висота переважає */
+.island.is-expanded.has-weather.show-weather:not(.is-asking) {
+  height: 186px;
+}
+
+/* Верхній рядок: вкладки (є музика) або дата (немає) */
+.tabs,
+.tabs-date {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  display: none;
+  justify-content: center;
+  gap: 4px;
+}
+
+.island.has-tabs:not(.is-asking) .tabs {
+  display: flex;
+}
+
+.island.show-weather:not(.has-tabs, .is-asking) .tabs-date {
+  display: flex;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--island-muted);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--island-muted);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.tab:hover {
+  color: var(--island-fg);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--island-hover);
+  color: var(--island-fg);
+}
+
+.tab svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.weather {
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  box-sizing: border-box;
+  /* Знизу більше: щоб плитки не впиралися в заокруглення острова */
+  padding: 34px 20px 18px;
+}
+
+.weather__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.weather__icon .weather-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.weather__now {
+  flex: 1;
+  min-width: 0;
+}
+
+.weather__temp {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.weather__desc,
+.weather__place {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--island-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.weather__place {
+  max-width: 40%;
+  text-align: right;
+}
+
+.weather__city {
+  overflow: hidden;
+  color: var(--island-fg);
+  text-overflow: ellipsis;
+}
+
+.weather__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--island-faint);
+}
+
+.tile__label {
+  font-size: 11px;
+  color: var(--island-muted);
+}
+
+.tile__value {
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile__icon,
+.tile__sun svg,
+.weather-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tile__icon {
+  width: 22px;
+  height: 22px;
+  color: #85b7eb;
+}
+
+.tile__sun {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tile__sun svg {
+  width: 14px;
+  height: 14px;
+  color: #f5b942;
+}
+
+/* Компас: коло, «Пн» угорі, стрілка повертається за вітром */
+.compass {
+  width: 36px;
+  height: 36px;
+}
+
+.compass circle {
+  fill: none;
+  stroke: var(--island-track);
+}
+
+.compass text {
+  font-size: 7px;
+  fill: var(--island-muted);
+  text-anchor: middle;
+}
+
+.compass__arrow {
+  fill: var(--island-fg);
+  transform-box: view-box;
+  transform-origin: 17px 17px;
+  transition: transform 600ms var(--ease-out);
+}
+
+/* Кольори іконок погоди: сонце — жовте, опади — блакитні, решта — колір тексту */
+.weather-icon--clear {
+  color: #f5b942;
+}
+
+.weather-icon--drizzle,
+.weather-icon--rain,
+.weather-icon--snow {
+  color: #85b7eb;
+}
+
+.weather-icon--thunder {
+  color: #f5b942;
+}
+
 /* Якщо в Windows вимкнено анімації — не анімуємо */
 @media (prefers-reduced-motion: reduce) {
   .island,
@@ -1027,7 +1288,8 @@ body.edge-bottom .stage.is-dripping .drip-drop {
   .island__expanded,
   .lyrics,
   .lyrics__track,
-  .lyrics__line {
+  .lyrics__line,
+  .compass__arrow {
     transition: none;
   }
   .island,

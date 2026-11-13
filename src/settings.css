@@ -395,3 +395,57 @@ code {
   gap: 6px;
   margin-top: 8px;
 }
+
+/* Погода: вибране місто, пошук і результати */
+.city-current {
+  font-weight: 600;
+  text-align: right;
+}
+
+.city-current.is-empty {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.city-search {
+  margin-top: 8px;
+}
+
+.text-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.text-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.city-results {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.city-result {
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.city-result:hover,
+.city-result:focus-visible {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  outline: none;
+}

@@ -29,6 +29,8 @@
       <div class="island__compact">
         <span class="mini-cover cover" data-cover aria-hidden="true"></span>
         <time class="island__clock" data-clock>--:--</time>
+        <!-- Погода: іконка й температура (лише коли нічого не грає, weather.js) -->
+        <span class="mini-weather" id="mini-weather"></span>
         <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
 
         <!-- Claude Code: крапка-індикатор і статус («Працюю…», «Bash: git status», «Готово») -->
@@ -38,6 +40,62 @@
 
       <!-- Розгорнутий стан -->
       <div class="island__expanded">
+        <!-- Верхній рядок, коли є погода: з музикою — вкладки, без неї — дата -->
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" data-tab="player">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17V5l10-2v12" /><circle cx="6.5" cy="17" r="2.5" /><circle cx="16.5" cy="15" r="2.5" /></svg>
+            <span data-i18n="weather.tabPlayer"></span>
+          </button>
+          <button class="tab" role="tab" data-tab="weather">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 11a3.5 3.5 0 0 0 0 7z" /></svg>
+            <span data-i18n="weather.tabWeather"></span>
+          </button>
+        </div>
+        <span class="tabs-date" data-date></span>
+
+        <!-- Погода: температура, опис, місто і плитки -->
+        <div class="weather" id="weather">
+          <div class="weather__head">
+            <span class="weather__icon" data-weather-icon></span>
+            <div class="weather__now">
+              <div class="weather__temp" data-weather-temp></div>
+              <div class="weather__desc" data-weather-desc></div>
+            </div>
+            <div class="weather__place">
+              <div class="weather__city" data-weather-city></div>
+              <div data-weather-updated></div>
+            </div>
+          </div>
+          <div class="weather__tiles">
+            <div class="tile">
+              <span class="tile__label" data-i18n="weather.wind"></span>
+              <!-- Компас: «Пн» угорі, стрілка показує, куди дме вітер -->
+              <svg class="compass" viewBox="0 0 34 34" aria-hidden="true">
+                <circle cx="17" cy="17" r="15" />
+                <text x="17" y="7.5" data-i18n="weather.north"></text>
+                <path class="compass__arrow" data-wind-arrow d="M17 10l3.8 13.5-3.8-2.4-3.8 2.4z" />
+              </svg>
+              <span class="tile__value" data-wind></span>
+            </div>
+            <div class="tile">
+              <span class="tile__label" data-i18n="weather.humidity"></span>
+              <svg class="tile__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5s6 6.4 6 10.5a6 6 0 0 1-12 0c0-4.1 6-10.5 6-10.5z" /></svg>
+              <span class="tile__value" data-humidity></span>
+            </div>
+            <div class="tile">
+              <span class="tile__label" data-i18n="weather.sun"></span>
+              <span class="tile__value tile__sun">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18a7 7 0 0 1 14 0M3 18h18M12 8V4M9.5 6.5L12 4l2.5 2.5" /></svg>
+                <span data-sunrise></span>
+              </span>
+              <span class="tile__value tile__sun">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18a7 7 0 0 1 14 0M3 18h18M12 4v4M9.5 5.5L12 8l2.5-2.5" /></svg>
+                <span data-sunset></span>
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Нічого не грає: великий годинник і дата -->
         <div class="home">
           <time class="island__big-clock" data-clock>--:--</time>

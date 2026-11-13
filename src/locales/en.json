@@ -34,7 +34,18 @@
     "sizeReset": "Reset sizes",
     "wave": "Wave to the music",
     "visibilityHint": "Hide / show the island: Ctrl+Alt+L or the tray menu. It can't appear over games in exclusive fullscreen — borderless window mode works.",
-    "songFont": "Song font"
+    "songFont": "Song font",
+    "weather": "Weather",
+    "weatherShow": "Show weather",
+    "weatherCity": "City",
+    "weatherNone": "not selected",
+    "weatherSearch": "Start typing a city name",
+    "weatherHere": "My location",
+    "weatherLocating": "Finding your location…",
+    "weatherDenied": "Windows blocks location access. Turn it on: Settings → Privacy → Location → \"Allow desktop apps to access your location\".",
+    "weatherFailed": "Something went wrong — check your connection and try again.",
+    "weatherNotFound": "Nothing found",
+    "weatherHint": "Data by Open-Meteo, no sign-up. Only a rounded location (~1 km) is sent; the city is stored on this computer only."
   },
   "agent": {
     "working": "Working…",
@@ -77,5 +88,37 @@
   },
   "fonts": {
     "system": "Default"
+  },
+  "weather": {
+    "tabPlayer": "Player",
+    "tabWeather": "Weather",
+    "feelsLike": "feels like",
+    "updated": "updated",
+    "wind": "Wind",
+    "humidity": "Humidity",
+    "sun": "Sun",
+    "north": "N",
+    "ms": "m/s",
+    "myLocation": "My location",
+    "compass": {
+      "0": "N",
+      "1": "NE",
+      "2": "E",
+      "3": "SE",
+      "4": "S",
+      "5": "SW",
+      "6": "W",
+      "7": "NW"
+    },
+    "kinds": {
+      "clear": "Clear",
+      "partly": "Partly cloudy",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "drizzle": "Drizzle",
+      "rain": "Rain",
+      "snow": "Snow",
+      "thunder": "Thunderstorm"
+    }
   }
 }
